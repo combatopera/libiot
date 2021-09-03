@@ -64,12 +64,12 @@ class P110:
             raise ValueError('Decryption failed!')
         self.tpLinkCipher = TpLinkCipher(do_final[:16], do_final[16:])
 
-    def __getattr__(self, method):
+    def __getattr__(self, methodname):
         def m(**params):
             return P110Exception.check(json.loads(self.tpLinkCipher.decrypt(requests.post(self.url, headers = self.headers, params = self.reqparams, json = dict(
                 method = 'securePassthrough',
                 params = dict(request = self.tpLinkCipher.encrypt(json.dumps(dict(
-                    method = method,
+                    method = methodname,
                     params = params,
                     requestTimeMils = int(time.time() * 1000),
                     terminalUUID = self.terminalUUID,
