@@ -50,7 +50,7 @@ class P110:
             method = 'handshake',
             params = dict(
                 key = self.publickey.decode('utf-8'),
-                requestTimeMils = int(round(time.time() * 1000)),
+                requestTimeMils = int(time.time() * 1000),
             ),
         ))
         self.headers = dict(Cookie = r.headers['Set-Cookie'][:-13])
@@ -69,7 +69,7 @@ class P110:
                     username = self.encodedEmail,
                     password = self.encodedPassword,
                 ),
-                requestTimeMils = int(round(time.time() * 1000)),
+                requestTimeMils = int(time.time() * 1000),
             )))),
         )).json()['result']['response'])))['result']['token'])
 
@@ -80,7 +80,7 @@ class P110:
                 params = dict(request = self.tpLinkCipher.encrypt(json.dumps(dict(
                     method = method,
                     params = params,
-                    requestTimeMils = int(round(time.time() * 1000)),
+                    requestTimeMils = int(time.time() * 1000),
                     terminalUUID = self.terminalUUID,
                 )))),
             )).json()['result']['response'])))
