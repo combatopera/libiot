@@ -57,7 +57,7 @@ class P110:
         ))
         self.headers = dict(Cookie = r.headers['Set-Cookie'][:-13])
         response = P110Exception.check(r.json())
-        do_final = PKCS1_v1_5.new(RSA.importKey(self.privatekey)).decrypt(b64decode(response['result']['key'].encode('utf-8')), None)
+        do_final = PKCS1_v1_5.new(RSA.importKey(self.privatekey)).decrypt(b64decode(response['result']['key']), None)
         if do_final is None:
             raise ValueError('Decryption failed!')
         self.tpLinkCipher = TpLinkCipher(do_final[:16], do_final[16:])

@@ -69,4 +69,4 @@ class TpLinkCipher:
         return self.mime_encoder(self._aes().encrypt(PKCS7Encoder().encode(data).encode('utf-8'))).replace('\r\n', '')
 
     def decrypt(self, data):
-        return PKCS7Encoder().decode(self._aes().decrypt(b64decode(data.encode('utf-8'))).decode('utf-8'))
+        return PKCS7Encoder().decode(self._aes().decrypt(b64decode(data)).decode('utf-8'))
