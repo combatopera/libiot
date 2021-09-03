@@ -33,12 +33,12 @@ from pkcs7 import PKCS7Encoder
 class P110Exception(Exception):
 
     messages = {
-        0: 'Success',
-        -1010: 'Invalid Public Key Length',
-        -1012: 'Invalid terminalUUID',
         -1501: 'Invalid Request or Credentials',
-        1002: 'Incorrect Request',
+        -1012: 'Invalid terminalUUID',
+        -1010: 'Invalid Public Key Length',
         -1003: 'JSON formatting error',
+        0: 'Success',
+        1002: 'Incorrect Request',
     }
 
     def __init__(self, errorcode):
