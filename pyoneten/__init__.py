@@ -66,11 +66,8 @@ class P110:
             params = self._payload(key = self.publickey),
         )
         self.headers = dict(Cookie = r.headers['Set-Cookie'][:-13])
-        response = P110Exception.check(r.json())
-        do_final = PKCS1_v1_5.new(RSA.importKey(self.privatekey)).decrypt(b64decode(response['result']['key']), None)
-        if do_final is None:
-            raise P110Exception('Decryption failed!')
-        self.tpLinkCipher = TpLinkCipher(do_final[:16], do_final[16:])
+        plaintext = PKCS1_v1_5.new(RSA.importKey(self.privatekey)).decrypt(b64decode(P110Exception.check(r.json())['result']['key']), None)
+        self.tpLinkCipher = TpLinkCipher(plaintext[:16], plaintext[16:])
 
     def __getattr__(self, methodname):
         def method(**methodparams):
