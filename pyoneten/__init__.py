@@ -94,8 +94,6 @@ class P110:
         return self.get_device_info()
 
     def getDeviceName(self):
-        self.handshake()
-        self.login()
         data = self.getDeviceInfo()
         data = json.loads(data)
         P110Exception.check(data)
