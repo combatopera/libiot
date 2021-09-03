@@ -57,12 +57,6 @@ class P110:
         self.publickey  = keys.publickey().exportKey('PEM')
         self.ipAddress = ipAddress
 
-    def decode_handshake_key(self, key):
-        do_final = PKCS1_v1_5.new(RSA.importKey(self.privatekey)).decrypt(b64decode(key.encode('utf-8')), None)
-        if do_final is None:
-            raise ValueError('Decryption failed!')
-        return TpLinkCipher(do_final[:16], do_final[16:])
-
     def handshake(self):
         r = requests.post(f"http://{self.ipAddress}/app", json = dict(
             method = 'handshake',
@@ -71,12 +65,15 @@ class P110:
                 requestTimeMils = int(round(time.time() * 1000)),
             ),
         ))
-        encryptedKey = r.json()['result']['key']
-        self.tpLinkCipher = self.decode_handshake_key(encryptedKey)
+        j = r.json()
+        do_final = PKCS1_v1_5.new(RSA.importKey(self.privatekey)).decrypt(b64decode(j['result']['key'].encode('utf-8')), None)
+        if do_final is None:
+            raise ValueError('Decryption failed!')
+        self.tpLinkCipher = TpLinkCipher(do_final[:16], do_final[16:])
         try:
             self.cookie = r.headers['Set-Cookie'][:-13]
         except:
-            raise P110Exception(r.json()['error_code'])
+            raise P110Exception(j['error_code'])
 
     def login(self):
         URL = f"http://{self.ipAddress}/app"
