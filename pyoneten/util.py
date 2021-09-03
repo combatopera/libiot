@@ -48,7 +48,7 @@ class TpLinkCipher:
 
     @staticmethod
     def mime_encoder(to_encode):
-        encoded_list = list(b64encode(to_encode).decode("UTF-8"))
+        encoded_list = list(b64encode(to_encode).decode('utf-8'))
         count = 0
         for i in range(76, len(encoded_list), 76):
             encoded_list.insert(i + count, '\r\n')
@@ -59,13 +59,11 @@ class TpLinkCipher:
         self.key = key
         self.iv = iv
 
+    def _aes(self):
+        return AES.new(self.key, AES.MODE_CBC, self.iv)
+
     def encrypt(self, data):
-        data = PKCS7Encoder().encode(data)
-        cipher = AES.new(self.key, AES.MODE_CBC, self.iv)
-        encrypted = cipher.encrypt(data.encode("UTF-8"))
-        return self.mime_encoder(encrypted).replace("\r\n","")
+        return self.mime_encoder(self._aes().encrypt(PKCS7Encoder().encode(data).encode('utf-8'))).replace('\r\n', '')
 
     def decrypt(self, data):
-        aes = AES.new(self.key, AES.MODE_CBC, self.iv)
-        pad_text = aes.decrypt(b64decode(data.encode("UTF-8"))).decode("UTF-8")
-        return PKCS7Encoder().decode(pad_text)
+        return PKCS7Encoder().decode(self._aes().decrypt(b64decode(data.encode('utf-8'))).decode('utf-8'))
