@@ -31,12 +31,13 @@ from base64 import b64decode
 from Crypto.Cipher import PKCS1_v1_5
 from Crypto.PublicKey import RSA
 from hashlib import sha1
-import json, requests, time, uuid
+from uuid import uuid4
+import json, requests, time
 
 class P110:
 
     def __init__ (self, ipAddress, email, password):
-        self.terminalUUID = str(uuid.uuid4())
+        self.terminalUUID = str(uuid4())
         self.encodedPassword = TpLinkCipher.mime_encoder(password.encode('utf-8'))
         self.encodedEmail = TpLinkCipher.mime_encoder(sha1(email.encode('utf-8')).hexdigest().encode('utf-8'))
         keys = RSA.generate(1024)
