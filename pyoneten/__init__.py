@@ -36,7 +36,7 @@ import json, requests, time
 
 class P110:
 
-    params = {}
+    reqparams = {}
 
     def __init__ (self, ipAddress, email, password):
         self.terminalUUID = str(uuid4())
@@ -66,7 +66,7 @@ class P110:
 
     def __getattr__(self, method):
         def m(**params):
-            return P110Exception.check(json.loads(self.tpLinkCipher.decrypt(requests.post(self.url, headers = self.headers, params = self.params, json = dict(
+            return P110Exception.check(json.loads(self.tpLinkCipher.decrypt(requests.post(self.url, headers = self.headers, params = self.reqparams, json = dict(
                 method = 'securePassthrough',
                 params = dict(request = self.tpLinkCipher.encrypt(json.dumps(dict(
                     method = method,
@@ -78,7 +78,7 @@ class P110:
         return m
 
     def login(self):
-        self.params = dict(token = self.login_device(**self.loginparams)['result']['token'])
+        self.reqparams = dict(token = self.login_device(**self.loginparams)['result']['token'])
 
     def turnOn(self):
         self.set_device_info(device_on = True)
