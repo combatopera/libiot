@@ -32,5 +32,5 @@ errorcodes = {
     '-1012': 'Invalid terminalUUID',
     '-1501': 'Invalid Request or Credentials',
     '1002': 'Incorrect Request',
-    '-1003': 'JSON formatting error ',
+    '-1003': 'JSON formatting error',
 }
