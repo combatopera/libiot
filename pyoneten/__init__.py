@@ -94,9 +94,4 @@ class P110:
         return self.get_device_info()
 
     def getDeviceName(self):
-        data = self.getDeviceInfo()
-        data = json.loads(data)
-        P110Exception.check(data)
-        encodedName = data["result"]["nickname"]
-        name = b64decode(encodedName)
-        return name.decode('utf-8')
+        return b64decode(self.get_device_info()['result']['nickname']).decode('utf-8')
