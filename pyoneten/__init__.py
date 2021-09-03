@@ -53,31 +53,22 @@ class P110:
         self.encodedPassword = TpLinkCipher.mime_encoder(password.encode("utf-8"))
         self.encodedEmail = TpLinkCipher.mime_encoder(sha_digest_username(email).encode("utf-8"))
         keys = RSA.generate(1024)
-        self.privateKey = keys.exportKey("PEM")
-        self.publicKey  = keys.publickey().exportKey("PEM")
+        self.privatekey = keys.exportKey('PEM')
+        self.publickey  = keys.publickey().exportKey('PEM')
         self.ipAddress = ipAddress
 
     def decode_handshake_key(self, key):
-        decode = b64decode(key.encode("UTF-8"))
-        decode2 = self.privateKey
-        cipher = PKCS1_v1_5.new(RSA.importKey(decode2))
-        do_final = cipher.decrypt(decode, None)
+        do_final = PKCS1_v1_5.new(RSA.importKey(self.privatekey)).decrypt(b64decode(key.encode('utf-8')), None)
         if do_final is None:
-            raise ValueError("Decryption failed!")
-        b_arr = bytearray()
-        b_arr2 = bytearray()
-        for i in range(16):
-            b_arr.insert(i, do_final[i])
-        for i in range(16):
-            b_arr2.insert(i, do_final[i + 16])
-        return TpLinkCipher(b_arr, b_arr2)
+            raise ValueError('Decryption failed!')
+        return TpLinkCipher(do_final[:16], do_final[16:])
 
     def handshake(self):
         URL = f"http://{self.ipAddress}/app"
         Payload = {
             "method":"handshake",
             "params":{
-                "key": self.publicKey.decode("utf-8"),
+                "key": self.publickey.decode('utf-8'),
                 "requestTimeMils": int(round(time.time() * 1000))
             }
         }
