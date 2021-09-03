@@ -97,7 +97,7 @@ class P110:
             self.cookie = r.headers["Set-Cookie"][:-13]
         except:
             errorCode = r.json()["error_code"]
-            errorMessage = errorcodes[str(errorCode)]
+            errorMessage = errorcodes[errorCode]
             raise Exception(f"Error Code: {errorCode}, {errorMessage}")
 
     def login(self):
@@ -126,7 +126,7 @@ class P110:
             self.token = ast.literal_eval(decryptedResponse)["result"]["token"]
         except:
             errorCode = ast.literal_eval(decryptedResponse)["error_code"]
-            errorMessage = errorcodes[str(errorCode)]
+            errorMessage = errorcodes[errorCode]
             raise Exception(f"Error Code: {errorCode}, {errorMessage}")
 
     def turnOn(self):
@@ -153,7 +153,7 @@ class P110:
         decryptedResponse = self.tpLinkCipher.decrypt(r.json()["result"]["response"])
         if ast.literal_eval(decryptedResponse)["error_code"] != 0:
             errorCode = ast.literal_eval(decryptedResponse)["error_code"]
-            errorMessage = errorcodes[str(errorCode)]
+            errorMessage = errorcodes[errorCode]
             raise Exception(f"Error Code: {errorCode}, {errorMessage}")
 
     def setBrightness(self, brightness):
@@ -179,7 +179,7 @@ class P110:
         decryptedResponse = self.tpLinkCipher.decrypt(r.json()["result"]["response"])
         if ast.literal_eval(decryptedResponse)["error_code"] != 0:
             errorCode = ast.literal_eval(decryptedResponse)["error_code"]
-            errorMessage = errorcodes[str(errorCode)]
+            errorMessage = errorcodes[errorCode]
             raise Exception(f"Error Code: {errorCode}, {errorMessage}")
 
     def turnOff(self):
@@ -206,7 +206,7 @@ class P110:
         decryptedResponse = self.tpLinkCipher.decrypt(r.json()["result"]["response"])
         if ast.literal_eval(decryptedResponse)["error_code"] != 0:
             errorCode = ast.literal_eval(decryptedResponse)["error_code"]
-            errorMessage = errorcodes[str(errorCode)]
+            errorMessage = errorcodes[errorCode]
             raise Exception(f"Error Code: {errorCode}, {errorMessage}")
 
     def getDeviceInfo(self):
@@ -236,7 +236,7 @@ class P110:
         data = json.loads(data)
         errorCode = data["error_code"]
         if errorCode != 0:
-            errorMessage = errorcodes[str(errorCode)]
+            errorMessage = errorcodes[errorCode]
             raise Exception(f"Error Code: {errorCode}, {errorMessage}")
         encodedName = data["result"]["nickname"]
         name = b64decode(encodedName)

@@ -31,12 +31,12 @@ from Crypto.Cipher import AES
 from pkcs7 import PKCS7Encoder
 
 errorcodes = {
-    '0': 'Success',
-    '-1010': 'Invalid Public Key Length',
-    '-1012': 'Invalid terminalUUID',
-    '-1501': 'Invalid Request or Credentials',
-    '1002': 'Incorrect Request',
-    '-1003': 'JSON formatting error',
+    0: 'Success',
+    -1010: 'Invalid Public Key Length',
+    -1012: 'Invalid terminalUUID',
+    -1501: 'Invalid Request or Credentials',
+    1002: 'Incorrect Request',
+    -1003: 'JSON formatting error',
 }
 
 class TpLinkCipher:
