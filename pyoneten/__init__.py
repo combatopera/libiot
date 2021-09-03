@@ -80,24 +80,16 @@ class P110:
             raise P110Exception(response['error_code'])
 
     def turnOn(self):
-        Payload = {
-            "method": "set_device_info",
-            "params":{
-                "device_on": True
-            },
-            "requestTimeMils": int(round(time.time() * 1000)),
-            "terminalUUID": self.terminalUUID
-        }
-        EncryptedPayload = self.tpLinkCipher.encrypt(json.dumps(Payload))
-        SecurePassthroughPayload = {
-            "method": "securePassthrough",
-            "params": {
-                "request": EncryptedPayload
-            }
-        }
-        r = requests.post(self.url, json=SecurePassthroughPayload, headers = self.headers, params = self.params)
-        decryptedResponse = self.tpLinkCipher.decrypt(r.json()["result"]["response"])
-        errorcode = json.loads(decryptedResponse)["error_code"]
+        response = json.loads(self.tpLinkCipher.decrypt(requests.post(self.url, headers = self.headers, params = self.params, json = dict(
+            method = 'securePassthrough',
+            params = dict(request = self.tpLinkCipher.encrypt(json.dumps(dict(
+                method = 'set_device_info',
+                params = dict(device_on = True),
+                requestTimeMils = int(round(time.time() * 1000)),
+                terminalUUID = self.terminalUUID,
+            )))),
+        )).json()['result']['response']))
+        errorcode = response['error_code']
         if errorcode:
             raise P110Exception(errorcode)
 
