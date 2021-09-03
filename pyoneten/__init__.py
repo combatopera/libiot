@@ -76,24 +76,17 @@ class P110:
             raise P110Exception(j['error_code'])
 
     def login(self):
-        URL = f"http://{self.ipAddress}/app"
-        Payload = {
-            "method":"login_device",
-            "params":{
-                "username": self.encodedEmail,
-                "password": self.encodedPassword
-            },
-            "requestTimeMils": int(round(time.time() * 1000)),
-        }
-        EncryptedPayload = self.tpLinkCipher.encrypt(json.dumps(Payload))
-        SecurePassthroughPayload = {
-            "method":"securePassthrough",
-            "params":{
-                "request": EncryptedPayload
-            }
-        }
-        r = requests.post(URL, json=SecurePassthroughPayload, headers = self.headers)
-        decryptedResponse = self.tpLinkCipher.decrypt(r.json()["result"]["response"])
+        decryptedResponse = self.tpLinkCipher.decrypt(requests.post(f"http://{self.ipAddress}/app", headers = self.headers, json = dict(
+            method = 'securePassthrough',
+            params = dict(request = self.tpLinkCipher.encrypt(json.dumps(dict(
+                method = 'login_device',
+                params = dict(
+                    username = self.encodedEmail,
+                    password = self.encodedPassword,
+                ),
+                requestTimeMils = int(round(time.time() * 1000)),
+            )))),
+        )).json()['result']['response'])
         try:
             self.token = ast.literal_eval(decryptedResponse)["result"]["token"]
         except:
