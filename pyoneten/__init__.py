@@ -36,6 +36,8 @@ import json, requests, time
 
 class P110:
 
+    params = {}
+
     def __init__ (self, ipAddress, email, password):
         self.terminalUUID = str(uuid4())
         self.encodedPassword = TpLinkCipher.mime_encoder(password.encode('utf-8'))
@@ -61,17 +63,10 @@ class P110:
         self.tpLinkCipher = TpLinkCipher(do_final[:16], do_final[16:])
 
     def login(self):
-        self.params = dict(token = P110Exception.check(json.loads(self.tpLinkCipher.decrypt(requests.post(self.url, headers = self.headers, json = dict(
-            method = 'securePassthrough',
-            params = dict(request = self.tpLinkCipher.encrypt(json.dumps(dict(
-                method = 'login_device',
-                params = dict(
-                    username = self.encodedEmail,
-                    password = self.encodedPassword,
-                ),
-                requestTimeMils = int(time.time() * 1000),
-            )))),
-        )).json()['result']['response'])))['result']['token'])
+        self.params = dict(token = self.login_device(
+            username = self.encodedEmail,
+            password = self.encodedPassword,
+        )['result']['token'])
 
     def __getattr__(self, method):
         def m(**params):
