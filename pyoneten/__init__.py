@@ -73,35 +73,30 @@ class P110:
             )))),
         )).json()['result']['response'])))['result']['token'])
 
-    def _method(self, method, **params):
-        return P110Exception.check(json.loads(self.tpLinkCipher.decrypt(requests.post(self.url, headers = self.headers, params = self.params, json = dict(
-            method = 'securePassthrough',
-            params = dict(request = self.tpLinkCipher.encrypt(json.dumps(dict(
-                method = method,
-                params = params,
-                requestTimeMils = int(round(time.time() * 1000)),
-                terminalUUID = self.terminalUUID,
-            )))),
-        )).json()['result']['response'])))
+    def __getattr__(self, method):
+        def m(**params):
+            return P110Exception.check(json.loads(self.tpLinkCipher.decrypt(requests.post(self.url, headers = self.headers, params = self.params, json = dict(
+                method = 'securePassthrough',
+                params = dict(request = self.tpLinkCipher.encrypt(json.dumps(dict(
+                    method = method,
+                    params = params,
+                    requestTimeMils = int(round(time.time() * 1000)),
+                    terminalUUID = self.terminalUUID,
+                )))),
+            )).json()['result']['response'])))
+        return m
 
     def turnOn(self):
-        self._method('set_device_info', device_on = True)
+        self.set_device_info(device_on = True)
 
     def turnOff(self):
-        self._method('set_device_info', device_on = False)
+        self.set_device_info(device_on = False)
 
     def setBrightness(self, brightness):
-        P110Exception.check(json.loads(self.tpLinkCipher.decrypt(requests.post(self.url, headers = self.headers, params = self.params, json = dict(
-            method = 'securePassthrough',
-            params = dict(request = self.tpLinkCipher.encrypt(json.dumps(dict(
-                method = 'set_device_info',
-                params = dict(brightness = brightness),
-                requestTimeMils = int(round(time.time() * 1000)),
-            )))),
-        )).json()['result']['response'])))
+        self.set_device_info(brightness = brightness)
 
     def getDeviceInfo(self):
-        return self._method('get_device_info')
+        return self.get_device_info()
 
     def getDeviceName(self):
         self.handshake()
