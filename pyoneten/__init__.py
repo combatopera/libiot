@@ -71,7 +71,8 @@ ERROR_CODES = {
 	"-1003": "JSON formatting error "
 }
 
-class P100():
+class P110:
+
 	def __init__ (self, ipAddress, email, password):
 		self.ipAddress = ipAddress
 		self.terminalUUID = str(uuid.uuid4())
