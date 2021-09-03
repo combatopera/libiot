@@ -65,7 +65,7 @@ class P110:
         response = P110Exception.check(r.json())
         do_final = PKCS1_v1_5.new(RSA.importKey(self.privatekey)).decrypt(b64decode(response['result']['key']), None)
         if do_final is None:
-            raise ValueError('Decryption failed!')
+            raise P110Exception('Decryption failed!')
         self.tpLinkCipher = TpLinkCipher(do_final[:16], do_final[16:])
 
     def __getattr__(self, methodname):
