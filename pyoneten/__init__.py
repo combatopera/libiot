@@ -39,7 +39,7 @@ class P110:
     reqparams = {}
 
     def __init__ (self, ipAddress, email, password):
-        self.terminalUUID = str(uuid4())
+        self.terminaluuid = str(uuid4())
         self.loginparams = dict(
             username = TpLinkCipher.mime_encoder(sha1(email.encode('utf-8')).hexdigest().encode('utf-8')),
             password = TpLinkCipher.mime_encoder(password.encode('utf-8')),
@@ -72,7 +72,7 @@ class P110:
                     method = methodname,
                     params = methodparams,
                     requestTimeMils = int(time.time() * 1000),
-                    terminalUUID = self.terminalUUID,
+                    terminalUUID = self.terminaluuid,
                 )))),
             )).json()['result']['response'])))
         return method
