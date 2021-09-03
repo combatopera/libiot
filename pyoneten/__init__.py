@@ -76,7 +76,7 @@ class P110:
         self.params = dict(token = response['result']['token'])
 
     def turnOn(self):
-        response = json.loads(self.tpLinkCipher.decrypt(requests.post(self.url, headers = self.headers, params = self.params, json = dict(
+        P110Exception.check(json.loads(self.tpLinkCipher.decrypt(requests.post(self.url, headers = self.headers, params = self.params, json = dict(
             method = 'securePassthrough',
             params = dict(request = self.tpLinkCipher.encrypt(json.dumps(dict(
                 method = 'set_device_info',
@@ -84,11 +84,10 @@ class P110:
                 requestTimeMils = int(round(time.time() * 1000)),
                 terminalUUID = self.terminalUUID,
             )))),
-        )).json()['result']['response']))
-        P110Exception.check(response)
+        )).json()['result']['response'])))
 
     def turnOff(self):
-        response = json.loads(self.tpLinkCipher.decrypt(requests.post(self.url, headers = self.headers, params = self.params, json = dict(
+        P110Exception.check(json.loads(self.tpLinkCipher.decrypt(requests.post(self.url, headers = self.headers, params = self.params, json = dict(
             method = 'securePassthrough',
             params = dict(request = self.tpLinkCipher.encrypt(json.dumps(dict(
                 method = 'set_device_info',
@@ -96,27 +95,17 @@ class P110:
                 requestTimeMils = int(round(time.time() * 1000)),
                 terminalUUID = self.terminalUUID,
             )))),
-        )).json()['result']['response']))
-        P110Exception.check(response)
+        )).json()['result']['response'])))
 
     def setBrightness(self, brightness):
-        Payload = {
-            "method": "set_device_info",
-            "params":{
-                "brightness": brightness
-            },
-            "requestTimeMils": int(round(time.time() * 1000)),
-        }
-        EncryptedPayload = self.tpLinkCipher.encrypt(json.dumps(Payload))
-        SecurePassthroughPayload = {
-            "method": "securePassthrough",
-            "params":{
-                "request": EncryptedPayload
-            }
-        }
-        r = requests.post(self.url, json=SecurePassthroughPayload, headers = self.headers, params = self.params)
-        decryptedResponse = self.tpLinkCipher.decrypt(r.json()["result"]["response"])
-        P110Exception.check(json.loads(decryptedResponse))
+        P110Exception.check(json.loads(self.tpLinkCipher.decrypt(requests.post(self.url, headers = self.headers, params = self.params, json = dict(
+            method = 'securePassthrough',
+            params = dict(request = self.tpLinkCipher.encrypt(json.dumps(dict(
+                method = 'set_device_info',
+                params = dict(brightness = brightness),
+                requestTimeMils = int(round(time.time() * 1000)),
+            )))),
+        )).json()['result']['response'])))
 
     def getDeviceInfo(self):
         Payload = {
