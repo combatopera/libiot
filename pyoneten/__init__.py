@@ -35,22 +35,13 @@ import ast, hashlib, json, requests, time, uuid
 class P110:
 
     def __init__ (self, ipAddress, email, password):
-        self.ipAddress = ipAddress
         self.terminalUUID = str(uuid.uuid4())
-        self.email = email
-        self.password = password
-        self.encryptCredentials(email, password)
-        self.createKeyPair()
-
-    def encryptCredentials(self, email, password):
         self.encodedPassword = TpLinkCipher.mime_encoder(password.encode("utf-8"))
-        self.encodedEmail = self.sha_digest_username(email)
-        self.encodedEmail = TpLinkCipher.mime_encoder(self.encodedEmail.encode("utf-8"))
-
-    def createKeyPair(self):
+        self.encodedEmail = TpLinkCipher.mime_encoder(self.sha_digest_username(email).encode("utf-8"))
         self.keys = RSA.generate(1024)
         self.privateKey = self.keys.exportKey("PEM")
         self.publicKey  = self.keys.publickey().exportKey("PEM")
+        self.ipAddress = ipAddress
 
     def decode_handshake_key(self, key):
         decode = b64decode(key.encode("UTF-8"))
