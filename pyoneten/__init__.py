@@ -235,11 +235,10 @@ class P110:
         self.login()
         data = self.getDeviceInfo()
         data = json.loads(data)
-        if data["error_code"] != 0:
-            errorCode = ast.literal_eval(decryptedResponse)["error_code"]
+        errorCode = data["error_code"]
+        if errorCode != 0:
             errorMessage = errorcodes[str(errorCode)]
             raise Exception(f"Error Code: {errorCode}, {errorMessage}")
-        else:
-            encodedName = data["result"]["nickname"]
-            name = b64decode(encodedName)
-            return name.decode("utf-8")
+        encodedName = data["result"]["nickname"]
+        name = b64decode(encodedName)
+        return name.decode("utf-8")
