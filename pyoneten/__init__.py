@@ -36,6 +36,7 @@ import json, requests, time
 
 class P110:
 
+    headers = {}
     reqparams = {}
 
     def __init__ (self, ipAddress, email, password):
@@ -49,6 +50,9 @@ class P110:
         self.publickey  = keys.publickey().exportKey('PEM')
         self.url = f"http://{ipAddress}/app"
 
+    def _post(self, **kwargs):
+        return requests.post(self.url, headers = self.headers, params = self.reqparams, json = kwargs, timeout = 10)
+
     def _payload(self, **kwargs):
         return dict(
             kwargs,
@@ -57,10 +61,10 @@ class P110:
         )
 
     def handshake(self):
-        r = requests.post(self.url, json = dict(
+        r = self._post(
             method = 'handshake',
             params = self._payload(key = self.publickey.decode('utf-8')),
-        ))
+        )
         self.headers = dict(Cookie = r.headers['Set-Cookie'][:-13])
         response = P110Exception.check(r.json())
         do_final = PKCS1_v1_5.new(RSA.importKey(self.privatekey)).decrypt(b64decode(response['result']['key']), None)
@@ -70,13 +74,13 @@ class P110:
 
     def __getattr__(self, methodname):
         def method(**methodparams):
-            return P110Exception.check(json.loads(self.tpLinkCipher.decrypt(requests.post(self.url, headers = self.headers, params = self.reqparams, json = dict(
+            return P110Exception.check(json.loads(self.tpLinkCipher.decrypt(self._post(
                 method = 'securePassthrough',
                 params = dict(request = self.tpLinkCipher.encrypt(json.dumps(self._payload(
                     method = methodname,
                     params = methodparams,
                 )))),
-            )).json()['result']['response'])))
+            ).json()['result']['response'])))
         return method
 
     def login(self):
