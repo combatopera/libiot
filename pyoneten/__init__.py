@@ -26,50 +26,12 @@
 #
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-import requests
-from base64 import b64encode, b64decode
-import hashlib
-from Crypto.PublicKey import RSA
-import time
-import json
+from .tp_link_cipher import TpLinkCipher
+from .util import errorcodes
+from base64 import b64decode, b64encode
 from Crypto.Cipher import AES, PKCS1_OAEP, PKCS1_v1_5
-from . import tp_link_cipher
-import ast
-import pkgutil
-import uuid
-import json
-
-#Old Functions to get device list from tplinkcloud
-def getToken(email, password):
-	URL = "https://eu-wap.tplinkcloud.com"
-	Payload = {
-		"method": "login",
-		"params": {
-			"appType": "Tapo_Ios",
-			"cloudUserName": email,
-			"cloudPassword": password,
-			"terminalUUID": "0A950402-7224-46EB-A450-7362CDB902A2"
-		}
-	}
-
-	return requests.post(URL, json=Payload).json()['result']['token']
-
-def getDeviceList(email, password):
-	URL = "https://eu-wap.tplinkcloud.com?token=" + getToken(email, password)
-	Payload = {
-		"method": "getDeviceList",
-	}
-
-	return requests.post(URL, json=Payload).json()
-
-ERROR_CODES = {
-	"0": "Success",
-	"-1010": "Invalid Public Key Length",
-	"-1012": "Invalid terminalUUID",
-	"-1501": "Invalid Request or Credentials",
-	"1002": "Incorrect Request",
-	"-1003": "JSON formatting error "
-}
+from Crypto.PublicKey import RSA
+import ast, hashlib, json, pkgutil, requests, time, uuid
 
 class P110:
 
@@ -79,19 +41,16 @@ class P110:
 
 		self.email = email
 		self.password = password
-
-		self.errorCodes = ERROR_CODES
-
 		self.encryptCredentials(email, password)
 		self.createKeyPair()
 
 	def encryptCredentials(self, email, password):
 		#Password Encoding
-		self.encodedPassword = tp_link_cipher.TpLinkCipher.mime_encoder(password.encode("utf-8"))
+		self.encodedPassword = TpLinkCipher.mime_encoder(password.encode("utf-8"))
 
 		#Email Encoding
 		self.encodedEmail = self.sha_digest_username(email)
-		self.encodedEmail = tp_link_cipher.TpLinkCipher.mime_encoder(self.encodedEmail.encode("utf-8"))
+		self.encodedEmail = TpLinkCipher.mime_encoder(self.encodedEmail.encode("utf-8"))
 
 	def createKeyPair(self):
 		self.keys = RSA.generate(1024)
@@ -116,7 +75,7 @@ class P110:
 		for i in range(0, 16):
 			b_arr2.insert(i, do_final[i + 16])
 
-		return tp_link_cipher.TpLinkCipher(b_arr, b_arr2)
+		return TpLinkCipher(b_arr, b_arr2)
 
 	def sha_digest_username(self, data):
 		b_arr = data.encode("UTF-8")
@@ -154,7 +113,7 @@ class P110:
 
 		except:
 			errorCode = r.json()["error_code"]
-			errorMessage = self.errorCodes[str(errorCode)]
+			errorMessage = errorcodes[str(errorCode)]
 			raise Exception(f"Error Code: {errorCode}, {errorMessage}")
 
 	def login(self):
@@ -188,7 +147,7 @@ class P110:
 			self.token = ast.literal_eval(decryptedResponse)["result"]["token"]
 		except:
 			errorCode = ast.literal_eval(decryptedResponse)["error_code"]
-			errorMessage = self.errorCodes[str(errorCode)]
+			errorMessage = errorcodes[str(errorCode)]
 			raise Exception(f"Error Code: {errorCode}, {errorMessage}")
 
 	def turnOn(self):
@@ -221,7 +180,7 @@ class P110:
 
 		if ast.literal_eval(decryptedResponse)["error_code"] != 0:
 			errorCode = ast.literal_eval(decryptedResponse)["error_code"]
-			errorMessage = self.errorCodes[str(errorCode)]
+			errorMessage = errorcodes[str(errorCode)]
 			raise Exception(f"Error Code: {errorCode}, {errorMessage}")
 
 	def setBrightness(self, brightness):
@@ -253,7 +212,7 @@ class P110:
 
 		if ast.literal_eval(decryptedResponse)["error_code"] != 0:
 			errorCode = ast.literal_eval(decryptedResponse)["error_code"]
-			errorMessage = self.errorCodes[str(errorCode)]
+			errorMessage = errorcodes[str(errorCode)]
 			raise Exception(f"Error Code: {errorCode}, {errorMessage}")
 
 	def turnOff(self):
@@ -286,7 +245,7 @@ class P110:
 
 		if ast.literal_eval(decryptedResponse)["error_code"] != 0:
 			errorCode = ast.literal_eval(decryptedResponse)["error_code"]
-			errorMessage = self.errorCodes[str(errorCode)]
+			errorMessage = errorcodes[str(errorCode)]
 			raise Exception(f"Error Code: {errorCode}, {errorMessage}")
 
 	def getDeviceInfo(self):
@@ -323,7 +282,7 @@ class P110:
 
 		if data["error_code"] != 0:
 			errorCode = ast.literal_eval(decryptedResponse)["error_code"]
-			errorMessage = self.errorCodes[str(errorCode)]
+			errorMessage = errorcodes[str(errorCode)]
 			raise Exception(f"Error Code: {errorCode}, {errorMessage}")
 		else:
 			encodedName = data["result"]["nickname"]
