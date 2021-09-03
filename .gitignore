@@ -1,4 +1,4 @@
 __pycache__/
-*.pyc
-dist/
-PyP100.egg-info/
+/pyoneten.egg-info/
+/setup.cfg
+/setup.py
