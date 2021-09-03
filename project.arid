@@ -36,3 +36,4 @@ name = pyoneten
 github participant = false
 licenses += MIT
 MIT path = LICENSE.txt
+pyversions += 3
