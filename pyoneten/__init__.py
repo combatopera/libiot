@@ -31,7 +31,7 @@ from base64 import b64decode
 from Crypto.Cipher import PKCS1_v1_5
 from Crypto.PublicKey import RSA
 from hashlib import sha1
-import ast, json, requests, time, uuid
+import json, requests, time, uuid
 
 class P110:
 
@@ -75,9 +75,9 @@ class P110:
             )))),
         )).json()['result']['response'])
         try:
-            self.token = ast.literal_eval(decryptedResponse)["result"]["token"]
+            self.token = json.loads(decryptedResponse)["result"]["token"]
         except:
-            raise P110Exception(ast.literal_eval(decryptedResponse)["error_code"])
+            raise P110Exception(json.loads(decryptedResponse)["error_code"])
 
     def turnOn(self):
         URL = f"http://{self.ipAddress}/app?token={self.token}"
@@ -98,7 +98,7 @@ class P110:
         }
         r = requests.post(URL, json=SecurePassthroughPayload, headers = self.headers)
         decryptedResponse = self.tpLinkCipher.decrypt(r.json()["result"]["response"])
-        errorcode = ast.literal_eval(decryptedResponse)["error_code"]
+        errorcode = json.loads(decryptedResponse)["error_code"]
         if errorcode:
             raise P110Exception(errorcode)
 
@@ -120,7 +120,7 @@ class P110:
         }
         r = requests.post(URL, json=SecurePassthroughPayload, headers = self.headers)
         decryptedResponse = self.tpLinkCipher.decrypt(r.json()["result"]["response"])
-        errorcode = ast.literal_eval(decryptedResponse)["error_code"]
+        errorcode = json.loads(decryptedResponse)["error_code"]
         if errorcode:
             raise P110Exception(errorcode)
 
@@ -143,7 +143,7 @@ class P110:
         }
         r = requests.post(URL, json=SecurePassthroughPayload, headers = self.headers)
         decryptedResponse = self.tpLinkCipher.decrypt(r.json()["result"]["response"])
-        errorcode = ast.literal_eval(decryptedResponse)["error_code"]
+        errorcode = json.loads(decryptedResponse)["error_code"]
         if errorcode:
             raise P110Exception(errorcode)
 
