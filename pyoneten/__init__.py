@@ -40,8 +40,10 @@ class P110:
 
     def __init__ (self, ipAddress, email, password):
         self.terminalUUID = str(uuid4())
-        self.encodedPassword = TpLinkCipher.mime_encoder(password.encode('utf-8'))
-        self.encodedEmail = TpLinkCipher.mime_encoder(sha1(email.encode('utf-8')).hexdigest().encode('utf-8'))
+        self.loginparams = dict(
+            username = TpLinkCipher.mime_encoder(sha1(email.encode('utf-8')).hexdigest().encode('utf-8')),
+            password = TpLinkCipher.mime_encoder(password.encode('utf-8')),
+        )
         keys = RSA.generate(1024)
         self.privatekey = keys.exportKey('PEM')
         self.publickey  = keys.publickey().exportKey('PEM')
@@ -62,12 +64,6 @@ class P110:
             raise ValueError('Decryption failed!')
         self.tpLinkCipher = TpLinkCipher(do_final[:16], do_final[16:])
 
-    def login(self):
-        self.params = dict(token = self.login_device(
-            username = self.encodedEmail,
-            password = self.encodedPassword,
-        )['result']['token'])
-
     def __getattr__(self, method):
         def m(**params):
             return P110Exception.check(json.loads(self.tpLinkCipher.decrypt(requests.post(self.url, headers = self.headers, params = self.params, json = dict(
@@ -80,6 +76,9 @@ class P110:
                 )))),
             )).json()['result']['response'])))
         return m
+
+    def login(self):
+        self.params = dict(token = self.login_device(**self.loginparams)['result']['token'])
 
     def turnOn(self):
         self.set_device_info(device_on = True)
