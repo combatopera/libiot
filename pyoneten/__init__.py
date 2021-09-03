@@ -63,7 +63,7 @@ class P110:
             raise P110Exception(j['error_code'])
 
     def login(self):
-        decryptedResponse = self.tpLinkCipher.decrypt(requests.post(f"http://{self.ipAddress}/app", headers = self.headers, json = dict(
+        response = json.loads(self.tpLinkCipher.decrypt(requests.post(f"http://{self.ipAddress}/app", headers = self.headers, json = dict(
             method = 'securePassthrough',
             params = dict(request = self.tpLinkCipher.encrypt(json.dumps(dict(
                 method = 'login_device',
@@ -73,11 +73,11 @@ class P110:
                 ),
                 requestTimeMils = int(round(time.time() * 1000)),
             )))),
-        )).json()['result']['response'])
+        )).json()['result']['response']))
         try:
-            self.token = json.loads(decryptedResponse)["result"]["token"]
+            self.token = response['result']['token']
         except:
-            raise P110Exception(json.loads(decryptedResponse)["error_code"])
+            raise P110Exception(response['error_code'])
 
     def turnOn(self):
         URL = f"http://{self.ipAddress}/app?token={self.token}"
