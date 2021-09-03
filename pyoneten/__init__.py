@@ -64,21 +64,19 @@ class P110:
         return TpLinkCipher(do_final[:16], do_final[16:])
 
     def handshake(self):
-        URL = f"http://{self.ipAddress}/app"
-        Payload = {
-            "method":"handshake",
-            "params":{
-                "key": self.publickey.decode('utf-8'),
-                "requestTimeMils": int(round(time.time() * 1000))
-            }
-        }
-        r = requests.post(URL, json=Payload)
-        encryptedKey = r.json()["result"]["key"]
+        r = requests.post(f"http://{self.ipAddress}/app", json = dict(
+            method = 'handshake',
+            params = dict(
+                key = self.publickey.decode('utf-8'),
+                requestTimeMils = int(round(time.time() * 1000)),
+            ),
+        ))
+        encryptedKey = r.json()['result']['key']
         self.tpLinkCipher = self.decode_handshake_key(encryptedKey)
         try:
-            self.cookie = r.headers["Set-Cookie"][:-13]
+            self.cookie = r.headers['Set-Cookie'][:-13]
         except:
-            raise P110Exception(r.json()["error_code"])
+            raise P110Exception(r.json()['error_code'])
 
     def login(self):
         URL = f"http://{self.ipAddress}/app"
