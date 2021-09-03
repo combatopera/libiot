@@ -73,11 +73,11 @@ class P110:
             )))),
         )).json()['result']['response'])))['result']['token'])
 
-    def _setinfo(self, **params):
+    def _method(self, method, **params):
         return P110Exception.check(json.loads(self.tpLinkCipher.decrypt(requests.post(self.url, headers = self.headers, params = self.params, json = dict(
             method = 'securePassthrough',
             params = dict(request = self.tpLinkCipher.encrypt(json.dumps(dict(
-                method = 'set_device_info',
+                method = method,
                 params = params,
                 requestTimeMils = int(round(time.time() * 1000)),
                 terminalUUID = self.terminalUUID,
@@ -85,10 +85,10 @@ class P110:
         )).json()['result']['response'])))
 
     def turnOn(self):
-        self._setinfo(device_on = True)
+        self._method('set_device_info', device_on = True)
 
     def turnOff(self):
-        self._setinfo(device_on = False)
+        self._method('set_device_info', device_on = False)
 
     def setBrightness(self, brightness):
         P110Exception.check(json.loads(self.tpLinkCipher.decrypt(requests.post(self.url, headers = self.headers, params = self.params, json = dict(
@@ -101,13 +101,7 @@ class P110:
         )).json()['result']['response'])))
 
     def getDeviceInfo(self):
-        return P110Exception.check(json.loads(self.tpLinkCipher.decrypt(requests.post(self.url, headers = self.headers, params = self.params, json = dict(
-            method = 'securePassthrough',
-            params = dict(request = self.tpLinkCipher.encrypt(json.dumps(dict(
-                method = 'get_device_info',
-                requestTimeMils = int(round(time.time() * 1000)),
-            )))),
-        )).json()['result']['response'])))
+        return self._method('get_device_info')
 
     def getDeviceName(self):
         self.handshake()
