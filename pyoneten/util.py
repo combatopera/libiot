@@ -41,10 +41,7 @@ errorcodes = {
 
 class TpLinkCipher:
 
-    def __init__(self, key, iv):
-        self.key = key
-        self.iv = iv
-
+    @staticmethod
     def mime_encoder(to_encode):
         encoded_list = list(b64encode(to_encode).decode("UTF-8"))
         count = 0
@@ -53,11 +50,15 @@ class TpLinkCipher:
             count += 1
         return ''.join(encoded_list)
 
+    def __init__(self, key, iv):
+        self.key = key
+        self.iv = iv
+
     def encrypt(self, data):
         data = PKCS7Encoder().encode(data)
         cipher = AES.new(bytes(self.key), AES.MODE_CBC, bytes(self.iv))
         encrypted = cipher.encrypt(data.encode("UTF-8"))
-        return TpLinkCipher.mime_encoder(encrypted).replace("\r\n","")
+        return self.mime_encoder(encrypted).replace("\r\n","")
 
     def decrypt(self, data):
         aes = AES.new(bytes(self.key), AES.MODE_CBC, bytes(self.iv))
