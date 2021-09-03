@@ -41,9 +41,9 @@ errorcodes = {
 
 class TpLinkCipher:
 
-    def __init__(self, b_arr, b_arr2):
-        self.iv = b_arr2
-        self.key = b_arr
+    def __init__(self, key, iv):
+        self.key = key
+        self.iv = iv
 
     def mime_encoder(to_encode):
         encoded_list = list(b64encode(to_encode).decode("UTF-8"))
