@@ -47,7 +47,7 @@ class P110:
         )
         keys = RSA.generate(1024)
         self.privatekey = keys.exportKey('PEM')
-        self.publickey  = keys.publickey().exportKey('PEM')
+        self.publickey  = keys.publickey().exportKey('PEM').decode('ascii')
         self.url = f"http://{ipAddress}/app"
 
     def _post(self, **kwargs):
@@ -63,7 +63,7 @@ class P110:
     def handshake(self):
         r = self._post(
             method = 'handshake',
-            params = self._payload(key = self.publickey.decode('utf-8')),
+            params = self._payload(key = self.publickey),
         )
         self.headers = dict(Cookie = r.headers['Set-Cookie'][:-13])
         response = P110Exception.check(r.json())
