@@ -32,15 +32,29 @@ from Crypto.Cipher import PKCS1_v1_5
 from Crypto.PublicKey import RSA
 import ast, hashlib, json, requests, time, uuid
 
+def sha_digest_username(data):
+    b_arr = data.encode("UTF-8")
+    digest = hashlib.sha1(b_arr).digest()
+    sb = ""
+    for i in range(len(digest)):
+        b = digest[i]
+        hex_string = hex(b & 255).replace("0x", "")
+        if len(hex_string) == 1:
+            sb += "0"
+            sb += hex_string
+        else:
+            sb += hex_string
+    return sb
+
 class P110:
 
     def __init__ (self, ipAddress, email, password):
         self.terminalUUID = str(uuid.uuid4())
         self.encodedPassword = TpLinkCipher.mime_encoder(password.encode("utf-8"))
-        self.encodedEmail = TpLinkCipher.mime_encoder(self.sha_digest_username(email).encode("utf-8"))
-        self.keys = RSA.generate(1024)
-        self.privateKey = self.keys.exportKey("PEM")
-        self.publicKey  = self.keys.publickey().exportKey("PEM")
+        self.encodedEmail = TpLinkCipher.mime_encoder(sha_digest_username(email).encode("utf-8"))
+        keys = RSA.generate(1024)
+        self.privateKey = keys.exportKey("PEM")
+        self.publicKey  = keys.publickey().exportKey("PEM")
         self.ipAddress = ipAddress
 
     def decode_handshake_key(self, key):
@@ -57,20 +71,6 @@ class P110:
         for i in range(16):
             b_arr2.insert(i, do_final[i + 16])
         return TpLinkCipher(b_arr, b_arr2)
-
-    def sha_digest_username(self, data):
-        b_arr = data.encode("UTF-8")
-        digest = hashlib.sha1(b_arr).digest()
-        sb = ""
-        for i in range(len(digest)):
-            b = digest[i]
-            hex_string = hex(b & 255).replace("0x", "")
-            if len(hex_string) == 1:
-                sb += "0"
-                sb += hex_string
-            else:
-                sb += hex_string
-        return sb
 
     def handshake(self):
         URL = f"http://{self.ipAddress}/app"
