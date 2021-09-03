@@ -28,10 +28,10 @@
 
 from .tp_link_cipher import TpLinkCipher
 from .util import errorcodes
-from base64 import b64decode, b64encode
-from Crypto.Cipher import AES, PKCS1_OAEP, PKCS1_v1_5
+from base64 import b64decode
+from Crypto.Cipher import PKCS1_v1_5
 from Crypto.PublicKey import RSA
-import ast, hashlib, json, pkgutil, requests, time, uuid
+import ast, hashlib, json, requests, time, uuid
 
 class P110:
 
