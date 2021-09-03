@@ -30,28 +30,15 @@ from .util import P110Exception, TpLinkCipher
 from base64 import b64decode
 from Crypto.Cipher import PKCS1_v1_5
 from Crypto.PublicKey import RSA
-import ast, hashlib, json, requests, time, uuid
-
-def sha_digest_username(data):
-    b_arr = data.encode("UTF-8")
-    digest = hashlib.sha1(b_arr).digest()
-    sb = ""
-    for i in range(len(digest)):
-        b = digest[i]
-        hex_string = hex(b & 255).replace("0x", "")
-        if len(hex_string) == 1:
-            sb += "0"
-            sb += hex_string
-        else:
-            sb += hex_string
-    return sb
+from hashlib import sha1
+import ast, json, requests, time, uuid
 
 class P110:
 
     def __init__ (self, ipAddress, email, password):
         self.terminalUUID = str(uuid.uuid4())
-        self.encodedPassword = TpLinkCipher.mime_encoder(password.encode("utf-8"))
-        self.encodedEmail = TpLinkCipher.mime_encoder(sha_digest_username(email).encode("utf-8"))
+        self.encodedPassword = TpLinkCipher.mime_encoder(password.encode('utf-8'))
+        self.encodedEmail = TpLinkCipher.mime_encoder(sha1(email.encode('utf-8')).hexdigest().encode('utf-8'))
         keys = RSA.generate(1024)
         self.privatekey = keys.exportKey('PEM')
         self.publickey  = keys.publickey().exportKey('PEM')
@@ -187,4 +174,4 @@ class P110:
             raise P110Exception(errorcode)
         encodedName = data["result"]["nickname"]
         name = b64decode(encodedName)
-        return name.decode("utf-8")
+        return name.decode('utf-8')
