@@ -65,7 +65,7 @@ class P110:
         self.tpLinkCipher = TpLinkCipher(do_final[:16], do_final[16:])
 
     def __getattr__(self, methodname):
-        def m(**methodparams):
+        def method(**methodparams):
             return P110Exception.check(json.loads(self.tpLinkCipher.decrypt(requests.post(self.url, headers = self.headers, params = self.reqparams, json = dict(
                 method = 'securePassthrough',
                 params = dict(request = self.tpLinkCipher.encrypt(json.dumps(dict(
@@ -75,7 +75,7 @@ class P110:
                     terminalUUID = self.terminalUUID,
                 )))),
             )).json()['result']['response'])))
-        return m
+        return method
 
     def login(self):
         self.reqparams = dict(token = self.login_device(**self.loginparams)['result']['token'])
