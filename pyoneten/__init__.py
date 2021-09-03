@@ -26,7 +26,7 @@
 #
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-from .util import errorcodes, TpLinkCipher
+from .util import P110Exception, TpLinkCipher
 from base64 import b64decode
 from Crypto.Cipher import PKCS1_v1_5
 from Crypto.PublicKey import RSA
@@ -96,9 +96,7 @@ class P110:
         try:
             self.cookie = r.headers["Set-Cookie"][:-13]
         except:
-            errorCode = r.json()["error_code"]
-            errorMessage = errorcodes[errorCode]
-            raise Exception(f"Error Code: {errorCode}, {errorMessage}")
+            raise P110Exception(r.json()["error_code"])
 
     def login(self):
         URL = f"http://{self.ipAddress}/app"
@@ -125,9 +123,7 @@ class P110:
         try:
             self.token = ast.literal_eval(decryptedResponse)["result"]["token"]
         except:
-            errorCode = ast.literal_eval(decryptedResponse)["error_code"]
-            errorMessage = errorcodes[errorCode]
-            raise Exception(f"Error Code: {errorCode}, {errorMessage}")
+            raise P110Exception(ast.literal_eval(decryptedResponse)["error_code"])
 
     def turnOn(self):
         URL = f"http://{self.ipAddress}/app?token={self.token}"
@@ -151,10 +147,9 @@ class P110:
         }
         r = requests.post(URL, json=SecurePassthroughPayload, headers=headers)
         decryptedResponse = self.tpLinkCipher.decrypt(r.json()["result"]["response"])
-        if ast.literal_eval(decryptedResponse)["error_code"] != 0:
-            errorCode = ast.literal_eval(decryptedResponse)["error_code"]
-            errorMessage = errorcodes[errorCode]
-            raise Exception(f"Error Code: {errorCode}, {errorMessage}")
+        errorcode = ast.literal_eval(decryptedResponse)["error_code"]
+        if errorcode:
+            raise P110Exception(errorcode)
 
     def setBrightness(self, brightness):
         URL = f"http://{self.ipAddress}/app?token={self.token}"
@@ -177,10 +172,9 @@ class P110:
         }
         r = requests.post(URL, json=SecurePassthroughPayload, headers=headers)
         decryptedResponse = self.tpLinkCipher.decrypt(r.json()["result"]["response"])
-        if ast.literal_eval(decryptedResponse)["error_code"] != 0:
-            errorCode = ast.literal_eval(decryptedResponse)["error_code"]
-            errorMessage = errorcodes[errorCode]
-            raise Exception(f"Error Code: {errorCode}, {errorMessage}")
+        errorcode = ast.literal_eval(decryptedResponse)["error_code"]
+        if errorcode:
+            raise P110Exception(errorcode)
 
     def turnOff(self):
         URL = f"http://{self.ipAddress}/app?token={self.token}"
@@ -204,10 +198,9 @@ class P110:
         }
         r = requests.post(URL, json=SecurePassthroughPayload, headers=headers)
         decryptedResponse = self.tpLinkCipher.decrypt(r.json()["result"]["response"])
-        if ast.literal_eval(decryptedResponse)["error_code"] != 0:
-            errorCode = ast.literal_eval(decryptedResponse)["error_code"]
-            errorMessage = errorcodes[errorCode]
-            raise Exception(f"Error Code: {errorCode}, {errorMessage}")
+        errorcode = ast.literal_eval(decryptedResponse)["error_code"]
+        if errorcode:
+            raise P110Exception(errorcode)
 
     def getDeviceInfo(self):
         URL = f"http://{self.ipAddress}/app?token={self.token}"
@@ -234,10 +227,9 @@ class P110:
         self.login()
         data = self.getDeviceInfo()
         data = json.loads(data)
-        errorCode = data["error_code"]
-        if errorCode != 0:
-            errorMessage = errorcodes[errorCode]
-            raise Exception(f"Error Code: {errorCode}, {errorMessage}")
+        errorcode = data["error_code"]
+        if errorcode:
+            raise P110Exception(errorcode)
         encodedName = data["result"]["nickname"]
         name = b64decode(encodedName)
         return name.decode("utf-8")
