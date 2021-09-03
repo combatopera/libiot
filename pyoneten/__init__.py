@@ -49,13 +49,17 @@ class P110:
         self.publickey  = keys.publickey().exportKey('PEM')
         self.url = f"http://{ipAddress}/app"
 
+    def _payload(self, **kwargs):
+        return dict(
+            kwargs,
+            requestTimeMils = int(time.time() * 1000),
+            terminalUUID = self.terminaluuid,
+        )
+
     def handshake(self):
         r = requests.post(self.url, json = dict(
             method = 'handshake',
-            params = dict(
-                key = self.publickey.decode('utf-8'),
-                requestTimeMils = int(time.time() * 1000),
-            ),
+            params = self._payload(key = self.publickey.decode('utf-8')),
         ))
         self.headers = dict(Cookie = r.headers['Set-Cookie'][:-13])
         response = P110Exception.check(r.json())
@@ -68,11 +72,9 @@ class P110:
         def method(**methodparams):
             return P110Exception.check(json.loads(self.tpLinkCipher.decrypt(requests.post(self.url, headers = self.headers, params = self.reqparams, json = dict(
                 method = 'securePassthrough',
-                params = dict(request = self.tpLinkCipher.encrypt(json.dumps(dict(
+                params = dict(request = self.tpLinkCipher.encrypt(json.dumps(self._payload(
                     method = methodname,
                     params = methodparams,
-                    requestTimeMils = int(time.time() * 1000),
-                    terminalUUID = self.terminaluuid,
                 )))),
             )).json()['result']['response'])))
         return method
