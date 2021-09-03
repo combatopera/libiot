@@ -108,20 +108,13 @@ class P110:
         )).json()['result']['response'])))
 
     def getDeviceInfo(self):
-        Payload = {
-            "method": "get_device_info",
-            "requestTimeMils": int(round(time.time() * 1000)),
-        }
-        EncryptedPayload = self.tpLinkCipher.encrypt(json.dumps(Payload))
-        SecurePassthroughPayload = {
-            "method":"securePassthrough",
-            "params":{
-                "request": EncryptedPayload
-            }
-        }
-        r = requests.post(self.url, json=SecurePassthroughPayload, headers = self.headers, params = self.params)
-        decryptedResponse = self.tpLinkCipher.decrypt(r.json()["result"]["response"])
-        return json.loads(decryptedResponse)
+        return json.loads(self.tpLinkCipher.decrypt(requests.post(self.url, headers = self.headers, params = self.params, json = dict(
+            method = 'securePassthrough',
+            params = dict(request = self.tpLinkCipher.encrypt(json.dumps(dict(
+                method = 'get_device_info',
+                requestTimeMils = int(round(time.time() * 1000)),
+            )))),
+        )).json()['result']['response']))
 
     def getDeviceName(self):
         self.handshake()
