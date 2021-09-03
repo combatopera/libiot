@@ -74,10 +74,10 @@ class P110:
                 requestTimeMils = int(round(time.time() * 1000)),
             )))),
         )).json()['result']['response']))
-        try:
-            self.params = dict(token = response['result']['token'])
-        except:
-            raise P110Exception(response['error_code'])
+        errorcode = response['error_code']
+        if errorcode:
+            raise P110Exception(errorcode)
+        self.params = dict(token = response['result']['token'])
 
     def turnOn(self):
         response = json.loads(self.tpLinkCipher.decrypt(requests.post(self.url, headers = self.headers, params = self.params, json = dict(
