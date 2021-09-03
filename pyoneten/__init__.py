@@ -45,9 +45,9 @@ class P110:
             username = TpLinkCipher.mime_encoder(sha1(email.encode('utf-8')).hexdigest().encode('utf-8')),
             password = TpLinkCipher.mime_encoder(password.encode('utf-8')),
         )
-        keys = RSA.generate(1024)
-        self.privatekey = keys.exportKey('PEM')
-        self.publickey  = keys.publickey().exportKey('PEM').decode('ascii')
+        key = RSA.generate(1024)
+        self.privatekey = key.exportKey('PEM')
+        self.publickey  = key.publickey().exportKey('PEM').decode('ascii')
         self.url = f"http://{ipAddress}/app"
 
     def _post(self, **kwargs):
