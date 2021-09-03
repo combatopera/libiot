@@ -37,12 +37,14 @@ class P110Exception(Exception):
         -1012: 'Invalid terminalUUID',
         -1010: 'Invalid Public Key Length',
         -1003: 'JSON formatting error',
-        0: 'Success',
         1002: 'Incorrect Request',
     }
 
-    def __init__(self, errorcode):
-        super().__init__(f"Error Code: {errorcode}, {self.messages[errorcode]}")
+    @classmethod
+    def check(cls, response):
+        errorcode = response['error_code']
+        if errorcode:
+            raise cls(f"Error Code: {errorcode}, {cls.messages[errorcode]}")
 
 class TpLinkCipher:
 

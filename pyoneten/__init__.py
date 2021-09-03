@@ -54,9 +54,7 @@ class P110:
         ))
         self.headers = dict(Cookie = r.headers['Set-Cookie'][:-13])
         response = r.json()
-        errorcode = response['error_code']
-        if errorcode:
-            raise P110Exception(errorcode)
+        P110Exception.check(response)
         do_final = PKCS1_v1_5.new(RSA.importKey(self.privatekey)).decrypt(b64decode(response['result']['key'].encode('utf-8')), None)
         if do_final is None:
             raise ValueError('Decryption failed!')
@@ -74,9 +72,7 @@ class P110:
                 requestTimeMils = int(round(time.time() * 1000)),
             )))),
         )).json()['result']['response']))
-        errorcode = response['error_code']
-        if errorcode:
-            raise P110Exception(errorcode)
+        P110Exception.check(response)
         self.params = dict(token = response['result']['token'])
 
     def turnOn(self):
@@ -89,9 +85,7 @@ class P110:
                 terminalUUID = self.terminalUUID,
             )))),
         )).json()['result']['response']))
-        errorcode = response['error_code']
-        if errorcode:
-            raise P110Exception(errorcode)
+        P110Exception.check(response)
 
     def turnOff(self):
         response = json.loads(self.tpLinkCipher.decrypt(requests.post(self.url, headers = self.headers, params = self.params, json = dict(
@@ -103,9 +97,7 @@ class P110:
                 terminalUUID = self.terminalUUID,
             )))),
         )).json()['result']['response']))
-        errorcode = response['error_code']
-        if errorcode:
-            raise P110Exception(errorcode)
+        P110Exception.check(response)
 
     def setBrightness(self, brightness):
         Payload = {
@@ -124,9 +116,7 @@ class P110:
         }
         r = requests.post(self.url, json=SecurePassthroughPayload, headers = self.headers, params = self.params)
         decryptedResponse = self.tpLinkCipher.decrypt(r.json()["result"]["response"])
-        errorcode = json.loads(decryptedResponse)["error_code"]
-        if errorcode:
-            raise P110Exception(errorcode)
+        P110Exception.check(json.loads(decryptedResponse))
 
     def getDeviceInfo(self):
         Payload = {
@@ -149,9 +139,7 @@ class P110:
         self.login()
         data = self.getDeviceInfo()
         data = json.loads(data)
-        errorcode = data["error_code"]
-        if errorcode:
-            raise P110Exception(errorcode)
+        P110Exception.check(data)
         encodedName = data["result"]["nickname"]
         name = b64decode(encodedName)
         return name.decode('utf-8')
