@@ -61,11 +61,11 @@ class TpLinkCipher:
 
     def encrypt(self, data):
         data = PKCS7Encoder().encode(data)
-        cipher = AES.new(bytes(self.key), AES.MODE_CBC, bytes(self.iv))
+        cipher = AES.new(self.key, AES.MODE_CBC, self.iv)
         encrypted = cipher.encrypt(data.encode("UTF-8"))
         return self.mime_encoder(encrypted).replace("\r\n","")
 
     def decrypt(self, data):
-        aes = AES.new(bytes(self.key), AES.MODE_CBC, bytes(self.iv))
+        aes = AES.new(self.key, AES.MODE_CBC, self.iv)
         pad_text = aes.decrypt(b64decode(data.encode("UTF-8"))).decode("UTF-8")
         return PKCS7Encoder().decode(pad_text)
