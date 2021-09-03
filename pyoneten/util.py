@@ -45,6 +45,7 @@ class P110Exception(Exception):
         errorcode = response['error_code']
         if errorcode:
             raise cls(f"Error Code: {errorcode}, {cls.messages[errorcode]}")
+        return response
 
 class TpLinkCipher:
 

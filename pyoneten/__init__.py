@@ -53,15 +53,14 @@ class P110:
             ),
         ))
         self.headers = dict(Cookie = r.headers['Set-Cookie'][:-13])
-        response = r.json()
-        P110Exception.check(response)
+        response = P110Exception.check(r.json())
         do_final = PKCS1_v1_5.new(RSA.importKey(self.privatekey)).decrypt(b64decode(response['result']['key'].encode('utf-8')), None)
         if do_final is None:
             raise ValueError('Decryption failed!')
         self.tpLinkCipher = TpLinkCipher(do_final[:16], do_final[16:])
 
     def login(self):
-        response = json.loads(self.tpLinkCipher.decrypt(requests.post(self.url, headers = self.headers, json = dict(
+        self.params = dict(token = P110Exception.check(json.loads(self.tpLinkCipher.decrypt(requests.post(self.url, headers = self.headers, json = dict(
             method = 'securePassthrough',
             params = dict(request = self.tpLinkCipher.encrypt(json.dumps(dict(
                 method = 'login_device',
@@ -71,9 +70,7 @@ class P110:
                 ),
                 requestTimeMils = int(round(time.time() * 1000)),
             )))),
-        )).json()['result']['response']))
-        P110Exception.check(response)
-        self.params = dict(token = response['result']['token'])
+        )).json()['result']['response'])))['result']['token'])
 
     def turnOn(self):
         P110Exception.check(json.loads(self.tpLinkCipher.decrypt(requests.post(self.url, headers = self.headers, params = self.params, json = dict(
@@ -108,13 +105,13 @@ class P110:
         )).json()['result']['response'])))
 
     def getDeviceInfo(self):
-        return json.loads(self.tpLinkCipher.decrypt(requests.post(self.url, headers = self.headers, params = self.params, json = dict(
+        return P110Exception.check(json.loads(self.tpLinkCipher.decrypt(requests.post(self.url, headers = self.headers, params = self.params, json = dict(
             method = 'securePassthrough',
             params = dict(request = self.tpLinkCipher.encrypt(json.dumps(dict(
                 method = 'get_device_info',
                 requestTimeMils = int(round(time.time() * 1000)),
             )))),
-        )).json()['result']['response']))
+        )).json()['result']['response'])))
 
     def getDeviceName(self):
         self.handshake()
