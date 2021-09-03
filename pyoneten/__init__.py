@@ -71,7 +71,7 @@ class P110:
             raise ValueError('Decryption failed!')
         self.tpLinkCipher = TpLinkCipher(do_final[:16], do_final[16:])
         try:
-            self.cookie = r.headers['Set-Cookie'][:-13]
+            self.headers = dict(Cookie = r.headers['Set-Cookie'][:-13])
         except:
             raise P110Exception(j['error_code'])
 
@@ -85,9 +85,6 @@ class P110:
             },
             "requestTimeMils": int(round(time.time() * 1000)),
         }
-        headers = {
-            "Cookie": self.cookie
-        }
         EncryptedPayload = self.tpLinkCipher.encrypt(json.dumps(Payload))
         SecurePassthroughPayload = {
             "method":"securePassthrough",
@@ -95,7 +92,7 @@ class P110:
                 "request": EncryptedPayload
             }
         }
-        r = requests.post(URL, json=SecurePassthroughPayload, headers=headers)
+        r = requests.post(URL, json=SecurePassthroughPayload, headers = self.headers)
         decryptedResponse = self.tpLinkCipher.decrypt(r.json()["result"]["response"])
         try:
             self.token = ast.literal_eval(decryptedResponse)["result"]["token"]
@@ -112,9 +109,6 @@ class P110:
             "requestTimeMils": int(round(time.time() * 1000)),
             "terminalUUID": self.terminalUUID
         }
-        headers = {
-            "Cookie": self.cookie
-        }
         EncryptedPayload = self.tpLinkCipher.encrypt(json.dumps(Payload))
         SecurePassthroughPayload = {
             "method": "securePassthrough",
@@ -122,7 +116,7 @@ class P110:
                 "request": EncryptedPayload
             }
         }
-        r = requests.post(URL, json=SecurePassthroughPayload, headers=headers)
+        r = requests.post(URL, json=SecurePassthroughPayload, headers = self.headers)
         decryptedResponse = self.tpLinkCipher.decrypt(r.json()["result"]["response"])
         errorcode = ast.literal_eval(decryptedResponse)["error_code"]
         if errorcode:
@@ -137,9 +131,6 @@ class P110:
             },
             "requestTimeMils": int(round(time.time() * 1000)),
         }
-        headers = {
-            "Cookie": self.cookie
-        }
         EncryptedPayload = self.tpLinkCipher.encrypt(json.dumps(Payload))
         SecurePassthroughPayload = {
             "method": "securePassthrough",
@@ -147,7 +138,7 @@ class P110:
                 "request": EncryptedPayload
             }
         }
-        r = requests.post(URL, json=SecurePassthroughPayload, headers=headers)
+        r = requests.post(URL, json=SecurePassthroughPayload, headers = self.headers)
         decryptedResponse = self.tpLinkCipher.decrypt(r.json()["result"]["response"])
         errorcode = ast.literal_eval(decryptedResponse)["error_code"]
         if errorcode:
@@ -163,9 +154,6 @@ class P110:
             "requestTimeMils": int(round(time.time() * 1000)),
             "terminalUUID": self.terminalUUID
         }
-        headers = {
-            "Cookie": self.cookie
-        }
         EncryptedPayload = self.tpLinkCipher.encrypt(json.dumps(Payload))
         SecurePassthroughPayload = {
             "method": "securePassthrough",
@@ -173,7 +161,7 @@ class P110:
                 "request": EncryptedPayload
             }
         }
-        r = requests.post(URL, json=SecurePassthroughPayload, headers=headers)
+        r = requests.post(URL, json=SecurePassthroughPayload, headers = self.headers)
         decryptedResponse = self.tpLinkCipher.decrypt(r.json()["result"]["response"])
         errorcode = ast.literal_eval(decryptedResponse)["error_code"]
         if errorcode:
@@ -185,9 +173,6 @@ class P110:
             "method": "get_device_info",
             "requestTimeMils": int(round(time.time() * 1000)),
         }
-        headers = {
-            "Cookie": self.cookie
-        }
         EncryptedPayload = self.tpLinkCipher.encrypt(json.dumps(Payload))
         SecurePassthroughPayload = {
             "method":"securePassthrough",
@@ -195,7 +180,7 @@ class P110:
                 "request": EncryptedPayload
             }
         }
-        r = requests.post(URL, json=SecurePassthroughPayload, headers=headers)
+        r = requests.post(URL, json=SecurePassthroughPayload, headers = self.headers)
         decryptedResponse = self.tpLinkCipher.decrypt(r.json()["result"]["response"])
         return json.loads(decryptedResponse)
 
