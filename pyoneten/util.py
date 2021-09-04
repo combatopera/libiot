@@ -67,6 +67,14 @@ class TpLinkCipher:
 
     encoder = PKCS7Encoder()
 
+    @classmethod
+    def _pad(cls, data):
+        return cls.encoder.encode(data.decode('latin-1')).encode('latin-1')
+
+    @classmethod
+    def _unpad(cls, data):
+        return cls.encoder.decode(data.decode('latin-1')).encode('latin-1')
+
     def __init__(self, key, iv):
         self.key = key
         self.iv = iv
@@ -75,7 +83,7 @@ class TpLinkCipher:
         return AES.new(self.key, AES.MODE_CBC, self.iv)
 
     def encrypt(self, data):
-        return self._aes().encrypt(self.encoder.encode(data).encode('utf-8'))
+        return self._aes().encrypt(self._pad(data))
 
     def decrypt(self, data):
-        return self.encoder.decode(self._aes().decrypt(data).decode('utf-8'))
+        return self._unpad(self._aes().decrypt(data))

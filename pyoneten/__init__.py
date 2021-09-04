@@ -72,7 +72,7 @@ class P110:
                 params = dict(request = b64encode(self.tpLinkCipher.encrypt(json.dumps(self._payload(
                     method = methodname,
                     params = methodparams,
-                )))).decode('ascii')),
+                )).encode('ascii'))).decode('ascii')),
             ).json()['result']['response']))))
         return method
 
