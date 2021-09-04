@@ -38,7 +38,7 @@ class TestCipher(TestCase):
     def test_works(self):
         ciphertext = self.c.encrypt('woo')
         self.assertEqual('g6VFw4mTQit4vIgQg5Zhlg==', ciphertext)
-        self.assertEqual('woo', self.c.decrypt(ciphertext))
+        self.assertEqual(b'woo', self.c.decrypt(ciphertext))
 
     def test_asciionly(self):
         with self.assertRaises(UnicodeEncodeError):
