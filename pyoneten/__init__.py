@@ -69,10 +69,10 @@ class P110:
         def method(**methodparams):
             return P110Exception.check(json.loads(self.tpLinkCipher.decrypt(self._post(
                 method = 'securePassthrough',
-                params = dict(request = self.tpLinkCipher.encrypt(json.dumps(self._payload(
+                params = dict(request = b64encode(self.tpLinkCipher.encrypt(json.dumps(self._payload(
                     method = methodname,
                     params = methodparams,
-                )))),
+                )))).decode('ascii')),
             ).json()['result']['response'])))
         return method
 

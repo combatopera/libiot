@@ -66,15 +66,6 @@ class P110Exception(Exception):
 
 class TpLinkCipher:
 
-    @staticmethod
-    def mime_encoder(to_encode):
-        encoded_list = list(b64encode(to_encode).decode('utf-8'))
-        count = 0
-        for i in range(76, len(encoded_list), 76):
-            encoded_list.insert(i + count, '\r\n')
-            count += 1
-        return ''.join(encoded_list)
-
     def __init__(self, key, iv):
         self.key = key
         self.iv = iv
@@ -83,7 +74,7 @@ class TpLinkCipher:
         return AES.new(self.key, AES.MODE_CBC, self.iv)
 
     def encrypt(self, data):
-        return self.mime_encoder(self._aes().encrypt(PKCS7Encoder().encode(data).encode('utf-8'))).replace('\r\n', '')
+        return self._aes().encrypt(PKCS7Encoder().encode(data).encode('utf-8'))
 
     def decrypt(self, data):
         return PKCS7Encoder().decode(self._aes().decrypt(b64decode(data)).decode('utf-8'))
