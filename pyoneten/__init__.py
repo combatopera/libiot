@@ -27,7 +27,7 @@
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 from .util import Identity, P110Exception, TpLinkCipher
-from base64 import b64decode
+from base64 import b64decode, b64encode
 from hashlib import sha1
 from requests import Session
 import json, logging, time
@@ -36,6 +36,7 @@ log = logging.getLogger(__name__)
 
 class P110:
 
+    charset = 'utf-8'
     reqparams = {}
 
     def __init__ (self, ipAddress, email, password):
@@ -44,7 +45,7 @@ class P110:
         self.url = f"http://{ipAddress}/app"
         self.loginparams = dict(
             username = TpLinkCipher.mime_encoder(sha1(email.encode('utf-8')).hexdigest().encode('utf-8')),
-            password = TpLinkCipher.mime_encoder(password.encode('utf-8')),
+            password = b64encode(password.encode(self.charset)).decode('ascii'),
         )
 
     def _post(self, **kwargs):
