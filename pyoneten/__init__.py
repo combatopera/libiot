@@ -80,8 +80,5 @@ class P110:
     def off(self):
         self.set_device_info(device_on = False)
 
-    def setBrightness(self, brightness):
-        self.set_device_info(brightness = brightness)
-
     def getDeviceName(self):
         return b64decode(self.get_device_info()['result']['nickname']).decode('utf-8')
