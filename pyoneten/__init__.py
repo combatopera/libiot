@@ -71,17 +71,14 @@ class P110:
     def login(self):
         self.reqparams = dict(token = self.login_device(**self.loginparams)['result']['token'])
 
-    def turnOn(self):
+    def on(self):
         self.set_device_info(device_on = True)
 
-    def turnOff(self):
+    def off(self):
         self.set_device_info(device_on = False)
 
     def setBrightness(self, brightness):
         self.set_device_info(brightness = brightness)
-
-    def getDeviceInfo(self):
-        return self.get_device_info()
 
     def getDeviceName(self):
         return b64decode(self.get_device_info()['result']['nickname']).decode('utf-8')
