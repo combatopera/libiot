@@ -39,7 +39,7 @@ class P110:
     charset = 'utf-8'
     reqparams = {}
 
-    def __init__ (self, ipAddress, email, password):
+    def __init__(self, ipAddress, email, password):
         self.identity = Identity() # TODO: Cache this.
         self.session = Session()
         self.url = f"http://{ipAddress}/app"
