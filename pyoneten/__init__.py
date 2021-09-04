@@ -30,7 +30,7 @@ from .util import b64str, Identity, P110Exception, Cipher
 from base64 import b64decode
 from hashlib import sha1
 from requests import Session
-import json, logging
+import logging
 
 log = logging.getLogger(__name__)
 
@@ -59,13 +59,13 @@ class P110:
 
     def __getattr__(self, methodname):
         def method(**methodparams):
-            return P110Exception.check(json.loads(self.cipher.decrypt(self._post(
+            return P110Exception.check(self.cipher.decrypt(self._post(
                 method = 'securePassthrough',
-                params = dict(request = self.cipher.encrypt(json.dumps(self.identity.payload(
+                params = dict(request = self.cipher.encrypt(self.identity.payload(
                     method = methodname,
                     params = methodparams,
-                )))),
-            ).json()['result']['response'])))
+                ))),
+            ).json()['result']['response']))
         return method
 
     def login(self):

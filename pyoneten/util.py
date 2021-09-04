@@ -31,7 +31,7 @@ from Crypto.Cipher import AES, PKCS1_v1_5
 from Crypto.PublicKey import RSA
 from pkcs7 import PKCS7Encoder
 from uuid import uuid4
-import logging, time
+import json, logging, time
 
 log = logging.getLogger(__name__)
 
@@ -104,8 +104,8 @@ class Cipher:
     def _aes(self):
         return AES.new(self.key, AES.MODE_CBC, self.iv)
 
-    def encrypt(self, text):
-        return b64str(self._aes().encrypt(self._pad(text.encode('ascii'))))
+    def encrypt(self, obj):
+        return b64str(self._aes().encrypt(self._pad(json.dumps(obj).encode('ascii'))))
 
     def decrypt(self, text):
-        return self._unpad(self._aes().decrypt(b64decode(text)))
+        return json.loads(self._unpad(self._aes().decrypt(b64decode(text))))
