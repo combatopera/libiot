@@ -67,13 +67,13 @@ class P110:
 
     def __getattr__(self, methodname):
         def method(**methodparams):
-            return P110Exception.check(json.loads(self.tpLinkCipher.decrypt(self._post(
+            return P110Exception.check(json.loads(self.tpLinkCipher.decrypt(b64decode(self._post(
                 method = 'securePassthrough',
                 params = dict(request = b64encode(self.tpLinkCipher.encrypt(json.dumps(self._payload(
                     method = methodname,
                     params = methodparams,
                 )))).decode('ascii')),
-            ).json()['result']['response'])))
+            ).json()['result']['response']))))
         return method
 
     def login(self):
