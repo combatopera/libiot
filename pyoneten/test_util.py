@@ -43,5 +43,5 @@ class TestCipher(TestCase):
     def test_asciionly(self):
         with self.assertRaises(UnicodeEncodeError):
             self.c.encrypt('\x80')
-        with self.assertRaises(UnicodeEncodeError):
+        with self.assertRaises(ValueError):
             self.c.decrypt('\x80')

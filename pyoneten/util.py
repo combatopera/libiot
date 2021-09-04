@@ -105,4 +105,4 @@ class Cipher:
         return b64encode(self._aes().encrypt(self._pad(text.encode('ascii')))).decode('ascii')
 
     def decrypt(self, text):
-        return self._unpad(self._aes().decrypt(b64decode(text.encode('ascii')))).decode('ascii')
+        return self._unpad(self._aes().decrypt(b64decode(text))).decode('ascii')
