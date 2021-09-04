@@ -29,13 +29,28 @@
 from base64 import b64decode, b64encode
 from Crypto.Cipher import AES, PKCS1_v1_5
 from Crypto.PublicKey import RSA
+from pathlib import Path
 from pkcs7 import PKCS7Encoder
 from uuid import uuid4
-import json, logging, time
+import json, logging, pickle, time
 
 log = logging.getLogger(__name__)
 
 class Identity:
+
+    cachepath = Path.home() / '.cache' / 'pyoneten' / 'identity'
+
+    @classmethod
+    def loadorcreate(cls):
+        if cls.cachepath.exists():
+            log.debug('Load cached identity.')
+            with cls.cachepath.open('rb') as f:
+                return pickle.load(f)
+        identity = cls()
+        cls.cachepath.parent.mkdir(parents = True, exist_ok = True)
+        with cls.cachepath.open('wb') as f:
+            pickle.dump(identity, f)
+        return identity
 
     def __init__(self):
         log.debug('Generate key pair.')

@@ -40,7 +40,7 @@ class P110:
     reqparams = {}
 
     def __init__(self, ipAddress, email, password, timeout = 10):
-        self.identity = Identity() # TODO: Cache this.
+        self.identity = Identity.loadorcreate()
         self.session = Session()
         self.url = f"http://{ipAddress}/app"
         self.loginparams = dict(
