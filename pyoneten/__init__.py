@@ -55,7 +55,7 @@ class P110:
         self.cipher = Cipher.create(self.identity.decrypt(b64decode(P110Exception.check(self._post(
             method = 'handshake',
             params = self.identity.handshakepayload(),
-        ).json())['result']['key'])))
+        ).json())['key'])))
 
     def __getattr__(self, methodname):
         def method(**methodparams):
@@ -69,10 +69,10 @@ class P110:
         return method
 
     def login(self):
-        self.reqparams = dict(token = self.login_device(**self.loginparams)['result']['token'])
+        self.reqparams = dict(token = self.login_device(**self.loginparams)['token'])
 
     def ison(self):
-        return self.get_device_info()['result']['device_on']
+        return self.get_device_info()['device_on']
 
     def on(self):
         self.set_device_info(device_on = True)
@@ -81,4 +81,4 @@ class P110:
         self.set_device_info(device_on = False)
 
     def nickname(self):
-        return b64decode(self.get_device_info()['result']['nickname']).decode(self.charset)
+        return b64decode(self.get_device_info()['nickname']).decode(self.charset)
