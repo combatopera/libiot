@@ -71,6 +71,9 @@ class P110:
     def login(self):
         self.reqparams = dict(token = self.login_device(**self.loginparams)['result']['token'])
 
+    def ison(self):
+        return self.get_device_info()['result']['device_on']
+
     def on(self):
         self.set_device_info(device_on = True)
 
