@@ -67,13 +67,13 @@ class P110:
 
     def __getattr__(self, methodname):
         def method(**methodparams):
-            return P110Exception.check(json.loads(self.cipher.decrypt(b64decode(self._post(
+            return P110Exception.check(json.loads(self.cipher.decrypt(self._post(
                 method = 'securePassthrough',
-                params = dict(request = b64encode(self.cipher.encrypt(json.dumps(self._payload(
+                params = dict(request = self.cipher.encrypt(json.dumps(self._payload(
                     method = methodname,
                     params = methodparams,
-                )).encode('ascii'))).decode('ascii')),
-            ).json()['result']['response']))))
+                )).encode('ascii')).decode('ascii')),
+            ).json()['result']['response'])))
         return method
 
     def login(self):

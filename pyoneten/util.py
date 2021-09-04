@@ -26,6 +26,7 @@
 #
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
+from base64 import b64decode, b64encode
 from Crypto.Cipher import AES, PKCS1_v1_5
 from Crypto.PublicKey import RSA
 from pkcs7 import PKCS7Encoder
@@ -87,7 +88,7 @@ class Cipher:
         return AES.new(self.key, AES.MODE_CBC, self.iv)
 
     def encrypt(self, data):
-        return self._aes().encrypt(self._pad(data))
+        return b64encode(self._aes().encrypt(self._pad(data)))
 
     def decrypt(self, data):
-        return self._unpad(self._aes().decrypt(data))
+        return self._unpad(self._aes().decrypt(b64decode(data)))
