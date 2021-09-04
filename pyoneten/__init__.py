@@ -26,7 +26,7 @@
 #
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-from .util import Identity, P110Exception, TpLinkCipher
+from .util import Identity, P110Exception, Cipher
 from base64 import b64decode, b64encode
 from hashlib import sha1
 from requests import Session
@@ -63,13 +63,13 @@ class P110:
             method = 'handshake',
             params = self._payload(key = self.identity.publickey),
         ).json())['result']['key']))
-        self.tpLinkCipher = TpLinkCipher(plaintext[:16], plaintext[16:])
+        self.cipher = Cipher(plaintext[:16], plaintext[16:])
 
     def __getattr__(self, methodname):
         def method(**methodparams):
-            return P110Exception.check(json.loads(self.tpLinkCipher.decrypt(b64decode(self._post(
+            return P110Exception.check(json.loads(self.cipher.decrypt(b64decode(self._post(
                 method = 'securePassthrough',
-                params = dict(request = b64encode(self.tpLinkCipher.encrypt(json.dumps(self._payload(
+                params = dict(request = b64encode(self.cipher.encrypt(json.dumps(self._payload(
                     method = methodname,
                     params = methodparams,
                 )).encode('ascii'))).decode('ascii')),

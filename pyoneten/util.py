@@ -63,7 +63,7 @@ class P110Exception(Exception):
             raise cls(response, cls.messages.get(errorcode))
         return response
 
-class TpLinkCipher:
+class Cipher:
 
     encoder = PKCS7Encoder()
 
