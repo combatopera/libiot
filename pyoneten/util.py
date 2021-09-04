@@ -67,13 +67,17 @@ class TpLinkCipher:
 
     encoder = PKCS7Encoder()
 
+    @staticmethod
+    def _runpkcs7(method, data):
+        return method(data.decode('latin-1')).encode('latin-1')
+
     @classmethod
     def _pad(cls, data):
-        return cls.encoder.encode(data.decode('latin-1')).encode('latin-1')
+        return cls._runpkcs7(cls.encoder.encode, data)
 
     @classmethod
     def _unpad(cls, data):
-        return cls.encoder.decode(data.decode('latin-1')).encode('latin-1')
+        return cls._runpkcs7(cls.encoder.decode, data)
 
     def __init__(self, key, iv):
         self.key = key
