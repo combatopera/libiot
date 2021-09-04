@@ -61,7 +61,7 @@ class P110Exception(Exception):
     def check(cls, response):
         errorcode = response['error_code']
         if errorcode:
-            raise cls(response, cls.messages[errorcode])
+            raise cls(response, cls.messages.get(errorcode))
         return response
 
 class TpLinkCipher:
