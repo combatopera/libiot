@@ -30,7 +30,7 @@ from .util import Identity, P110Exception, Cipher
 from base64 import b64decode, b64encode
 from hashlib import sha1
 from requests import Session
-import json, logging, time
+import json, logging
 
 log = logging.getLogger(__name__)
 
@@ -54,7 +54,7 @@ class P110:
     def handshake(self):
         self.cipher = Cipher.create(self.identity.decrypt(b64decode(P110Exception.check(self._post(
             method = 'handshake',
-            params = self.identity.payload(key = self.identity.publickey),
+            params = self.identity.handshakepayload(),
         ).json())['result']['key'])))
 
     def __getattr__(self, methodname):

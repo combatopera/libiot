@@ -54,6 +54,9 @@ class Identity:
             terminalUUID = self.terminaluuid,
         )
 
+    def handshakepayload(self):
+        return self.payload(key = self.publickey)
+
 class P110Exception(Exception):
 
     messages = {
