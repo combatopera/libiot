@@ -29,17 +29,18 @@
 from .util import Identity, P110Exception, TpLinkCipher
 from base64 import b64decode
 from hashlib import sha1
-import json, logging, requests, time
+from requests import Session
+import json, logging, time
 
 log = logging.getLogger(__name__)
 
 class P110:
 
-    headers = {}
     reqparams = {}
 
     def __init__ (self, ipAddress, email, password):
         self.identity = Identity() # TODO: Cache this.
+        self.session = Session()
         self.url = f"http://{ipAddress}/app"
         self.loginparams = dict(
             username = TpLinkCipher.mime_encoder(sha1(email.encode('utf-8')).hexdigest().encode('utf-8')),
@@ -47,7 +48,7 @@ class P110:
         )
 
     def _post(self, **kwargs):
-        return requests.post(self.url, headers = self.headers, params = self.reqparams, json = kwargs, timeout = 10)
+        return self.session.post(self.url, params = self.reqparams, json = kwargs, timeout = 10)
 
     def _payload(self, **kwargs):
         return dict(
@@ -57,12 +58,10 @@ class P110:
         )
 
     def handshake(self):
-        r = self._post(
+        plaintext = self.identity.decrypt(b64decode(P110Exception.check(self._post(
             method = 'handshake',
             params = self._payload(key = self.identity.publickey),
-        )
-        self.headers = dict(Cookie = r.headers['Set-Cookie'][:-13])
-        plaintext = self.identity.decrypt(b64decode(P110Exception.check(r.json())['result']['key']))
+        ).json())['result']['key']))
         self.tpLinkCipher = TpLinkCipher(plaintext[:16], plaintext[16:])
 
     def __getattr__(self, methodname):
