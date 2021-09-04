@@ -39,7 +39,7 @@ class P110:
     charset = 'utf-8'
     reqparams = {}
 
-    def __init__(self, ipAddress, email, password):
+    def __init__(self, ipAddress, email, password, timeout = 10):
         self.identity = Identity() # TODO: Cache this.
         self.session = Session()
         self.url = f"http://{ipAddress}/app"
@@ -47,9 +47,10 @@ class P110:
             username = b64str(sha1(email.encode(self.charset)).hexdigest().encode('ascii')),
             password = b64str(password.encode(self.charset)),
         )
+        self.timeout = timeout
 
     def _post(self, **kwargs):
-        return self.session.post(self.url, params = self.reqparams, json = kwargs, timeout = 10)
+        return self.session.post(self.url, params = self.reqparams, json = kwargs, timeout = self.timeout)
 
     def handshake(self):
         self.cipher = Cipher.create(self.identity.decrypt(b64decode(P110Exception.check(self._post(
