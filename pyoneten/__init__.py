@@ -44,7 +44,7 @@ class P110:
         self.session = Session()
         self.url = f"http://{ipAddress}/app"
         self.loginparams = dict(
-            username = TpLinkCipher.mime_encoder(sha1(email.encode('utf-8')).hexdigest().encode('utf-8')),
+            username = b64encode(sha1(email.encode(self.charset)).hexdigest().encode('ascii')).decode('ascii'),
             password = b64encode(password.encode(self.charset)).decode('ascii'),
         )
 
