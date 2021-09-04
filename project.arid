@@ -34,6 +34,7 @@ years += 2021
 author = Andrzej Cichocki
 name = pyoneten
 github participant = false
+pypi participant = false
 licenses += MIT
 MIT path = LICENSE.txt
 pyversions += 3
