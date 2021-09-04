@@ -72,7 +72,7 @@ class P110Exception(Exception):
         errorcode = response['error_code']
         if errorcode:
             raise cls(response, cls.messages.get(errorcode))
-        return response['result']
+        return response.get('result')
 
 def b64str(data):
     return b64encode(data).decode('ascii')
