@@ -66,6 +66,8 @@ class P110Exception(Exception):
 
 class TpLinkCipher:
 
+    encoder = PKCS7Encoder()
+
     def __init__(self, key, iv):
         self.key = key
         self.iv = iv
@@ -74,7 +76,7 @@ class TpLinkCipher:
         return AES.new(self.key, AES.MODE_CBC, self.iv)
 
     def encrypt(self, data):
-        return self._aes().encrypt(PKCS7Encoder().encode(data).encode('utf-8'))
+        return self._aes().encrypt(self.encoder.encode(data).encode('utf-8'))
 
     def decrypt(self, data):
-        return PKCS7Encoder().decode(self._aes().decrypt(b64decode(data)).decode('utf-8'))
+        return self.encoder.decode(self._aes().decrypt(b64decode(data)).decode('utf-8'))
