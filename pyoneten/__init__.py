@@ -32,7 +32,9 @@ from Crypto.Cipher import PKCS1_v1_5
 from Crypto.PublicKey import RSA
 from hashlib import sha1
 from uuid import uuid4
-import json, requests, time
+import json, logging, requests, time
+
+log = logging.getLogger(__name__)
 
 class P110:
 
@@ -40,15 +42,17 @@ class P110:
     reqparams = {}
 
     def __init__ (self, ipAddress, email, password):
+        # TODO: Cache these.
+        log.debug('Generate key pair.')
+        key = RSA.generate(1024)
+        self.privatekey = key.export_key()
+        self.publickey  = key.publickey().export_key().decode('ascii')
         self.terminaluuid = str(uuid4())
+        self.url = f"http://{ipAddress}/app"
         self.loginparams = dict(
             username = TpLinkCipher.mime_encoder(sha1(email.encode('utf-8')).hexdigest().encode('utf-8')),
             password = TpLinkCipher.mime_encoder(password.encode('utf-8')),
         )
-        key = RSA.generate(1024)
-        self.privatekey = key.export_key()
-        self.publickey  = key.publickey().export_key().decode('ascii')
-        self.url = f"http://{ipAddress}/app"
 
     def _post(self, **kwargs):
         return requests.post(self.url, headers = self.headers, params = self.reqparams, json = kwargs, timeout = 10)
