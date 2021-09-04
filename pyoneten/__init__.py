@@ -26,7 +26,7 @@
 #
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-from .util import b64enc, Identity, P110Exception, Cipher
+from .util import b64str, Identity, P110Exception, Cipher
 from base64 import b64decode
 from hashlib import sha1
 from requests import Session
@@ -44,8 +44,8 @@ class P110:
         self.session = Session()
         self.url = f"http://{ipAddress}/app"
         self.loginparams = dict(
-            username = b64enc(sha1(email.encode(self.charset)).hexdigest().encode('ascii')),
-            password = b64enc(password.encode(self.charset)),
+            username = b64str(sha1(email.encode(self.charset)).hexdigest().encode('ascii')),
+            password = b64str(password.encode(self.charset)),
         )
 
     def _post(self, **kwargs):

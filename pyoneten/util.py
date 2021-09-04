@@ -74,7 +74,7 @@ class P110Exception(Exception):
             raise cls(response, cls.messages.get(errorcode))
         return response['result']
 
-def b64enc(data):
+def b64str(data):
     return b64encode(data).decode('ascii')
 
 class Cipher:
@@ -105,7 +105,7 @@ class Cipher:
         return AES.new(self.key, AES.MODE_CBC, self.iv)
 
     def encrypt(self, text):
-        return b64enc(self._aes().encrypt(self._pad(text.encode('ascii'))))
+        return b64str(self._aes().encrypt(self._pad(text.encode('ascii'))))
 
     def decrypt(self, text):
         return self._unpad(self._aes().decrypt(b64decode(text))).decode('ascii')
