@@ -80,5 +80,5 @@ class P110:
     def off(self):
         self.set_device_info(device_on = False)
 
-    def getDeviceName(self):
-        return b64decode(self.get_device_info()['result']['nickname']).decode('utf-8')
+    def nickname(self):
+        return b64decode(self.get_device_info()['result']['nickname']).decode(self.charset)
