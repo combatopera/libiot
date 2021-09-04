@@ -27,8 +27,25 @@
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 from base64 import b64decode, b64encode
-from Crypto.Cipher import AES
+from Crypto.Cipher import AES, PKCS1_v1_5
+from Crypto.PublicKey import RSA
 from pkcs7 import PKCS7Encoder
+from uuid import uuid4
+import logging
+
+log = logging.getLogger(__name__)
+
+class Identity:
+
+    def __init__(self):
+        log.debug('Generate key pair.')
+        key = RSA.generate(1024)
+        self.privatekey = key.export_key()
+        self.publickey  = key.publickey().export_key().decode('ascii')
+        self.terminaluuid = str(uuid4())
+
+    def decrypt(self, data):
+        return PKCS1_v1_5.new(RSA.importKey(self.privatekey)).decrypt(data, None)
 
 class P110Exception(Exception):
 

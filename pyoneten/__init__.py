@@ -26,12 +26,9 @@
 #
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-from .util import P110Exception, TpLinkCipher
+from .util import Identity, P110Exception, TpLinkCipher
 from base64 import b64decode
-from Crypto.Cipher import PKCS1_v1_5
-from Crypto.PublicKey import RSA
 from hashlib import sha1
-from uuid import uuid4
 import json, logging, requests, time
 
 log = logging.getLogger(__name__)
@@ -42,12 +39,7 @@ class P110:
     reqparams = {}
 
     def __init__ (self, ipAddress, email, password):
-        # TODO: Cache these.
-        log.debug('Generate key pair.')
-        key = RSA.generate(1024)
-        self.privatekey = key.export_key()
-        self.publickey  = key.publickey().export_key().decode('ascii')
-        self.terminaluuid = str(uuid4())
+        self.identity = Identity() # TODO: Cache this.
         self.url = f"http://{ipAddress}/app"
         self.loginparams = dict(
             username = TpLinkCipher.mime_encoder(sha1(email.encode('utf-8')).hexdigest().encode('utf-8')),
@@ -61,16 +53,16 @@ class P110:
         return dict(
             kwargs,
             requestTimeMils = int(time.time() * 1000),
-            terminalUUID = self.terminaluuid,
+            terminalUUID = self.identity.terminaluuid,
         )
 
     def handshake(self):
         r = self._post(
             method = 'handshake',
-            params = self._payload(key = self.publickey),
+            params = self._payload(key = self.identity.publickey),
         )
         self.headers = dict(Cookie = r.headers['Set-Cookie'][:-13])
-        plaintext = PKCS1_v1_5.new(RSA.importKey(self.privatekey)).decrypt(b64decode(P110Exception.check(r.json())['result']['key']), None)
+        plaintext = self.identity.decrypt(b64decode(P110Exception.check(r.json())['result']['key']))
         self.tpLinkCipher = TpLinkCipher(plaintext[:16], plaintext[16:])
 
     def __getattr__(self, methodname):
