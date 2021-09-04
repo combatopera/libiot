@@ -31,7 +31,7 @@ from Crypto.Cipher import AES, PKCS1_v1_5
 from Crypto.PublicKey import RSA
 from pkcs7 import PKCS7Encoder
 from uuid import uuid4
-import logging
+import logging, time
 
 log = logging.getLogger(__name__)
 
@@ -46,6 +46,13 @@ class Identity:
 
     def decrypt(self, data):
         return PKCS1_v1_5.new(RSA.importKey(self.privatekey)).decrypt(data, None)
+
+    def payload(self, **kwargs):
+        return dict(
+            kwargs,
+            requestTimeMils = int(time.time() * 1000),
+            terminalUUID = self.terminaluuid,
+        )
 
 class P110Exception(Exception):
 

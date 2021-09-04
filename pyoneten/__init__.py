@@ -51,24 +51,17 @@ class P110:
     def _post(self, **kwargs):
         return self.session.post(self.url, params = self.reqparams, json = kwargs, timeout = 10)
 
-    def _payload(self, **kwargs):
-        return dict(
-            kwargs,
-            requestTimeMils = int(time.time() * 1000),
-            terminalUUID = self.identity.terminaluuid,
-        )
-
     def handshake(self):
         self.cipher = Cipher.create(self.identity.decrypt(b64decode(P110Exception.check(self._post(
             method = 'handshake',
-            params = self._payload(key = self.identity.publickey),
+            params = self.identity.payload(key = self.identity.publickey),
         ).json())['result']['key'])))
 
     def __getattr__(self, methodname):
         def method(**methodparams):
             return P110Exception.check(json.loads(self.cipher.decrypt(self._post(
                 method = 'securePassthrough',
-                params = dict(request = self.cipher.encrypt(json.dumps(self._payload(
+                params = dict(request = self.cipher.encrypt(json.dumps(self.identity.payload(
                     method = methodname,
                     params = methodparams,
                 )))),
