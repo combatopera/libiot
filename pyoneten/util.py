@@ -80,6 +80,10 @@ class Cipher:
     def _unpad(cls, data):
         return cls._runpkcs7(cls.encoder.decode, data)
 
+    @classmethod
+    def create(cls, data):
+        return cls(data[:16], data[16:])
+
     def __init__(self, key, iv):
         self.key = key
         self.iv = iv
@@ -87,8 +91,8 @@ class Cipher:
     def _aes(self):
         return AES.new(self.key, AES.MODE_CBC, self.iv)
 
-    def encrypt(self, data):
-        return b64encode(self._aes().encrypt(self._pad(data)))
+    def encrypt(self, text):
+        return b64encode(self._aes().encrypt(self._pad(text.encode('ascii')))).decode('ascii')
 
-    def decrypt(self, data):
-        return self._unpad(self._aes().decrypt(b64decode(data)))
+    def decrypt(self, text):
+        return self._unpad(self._aes().decrypt(b64decode(text.encode('ascii')))).decode('ascii')

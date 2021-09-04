@@ -59,11 +59,10 @@ class P110:
         )
 
     def handshake(self):
-        plaintext = self.identity.decrypt(b64decode(P110Exception.check(self._post(
+        self.cipher = Cipher.create(self.identity.decrypt(b64decode(P110Exception.check(self._post(
             method = 'handshake',
             params = self._payload(key = self.identity.publickey),
-        ).json())['result']['key']))
-        self.cipher = Cipher(plaintext[:16], plaintext[16:])
+        ).json())['result']['key'])))
 
     def __getattr__(self, methodname):
         def method(**methodparams):
@@ -72,7 +71,7 @@ class P110:
                 params = dict(request = self.cipher.encrypt(json.dumps(self._payload(
                     method = methodname,
                     params = methodparams,
-                )).encode('ascii')).decode('ascii')),
+                )))),
             ).json()['result']['response'])))
         return method
 
