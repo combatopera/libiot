@@ -43,14 +43,15 @@ class Identity:
 
     @classmethod
     def loadorcreate(cls):
-        if cls.cachepath.exists():
-            log.debug('Load cached identity.')
+        try:
             with cls.cachepath.open('rb') as f:
+                log.debug('Load cached identity.')
                 return pickle.load(f)
-        identity = cls()
-        with atomic(cls.cachepath) as p, p.open('wb') as f:
-            pickle.dump(identity, f)
-        return identity
+        except FileNotFoundError:
+            identity = cls()
+            with atomic(cls.cachepath) as p, p.open('wb') as f:
+                pickle.dump(identity, f)
+            return identity
 
     def __init__(self):
         log.debug('Generate key pair.')
