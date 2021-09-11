@@ -39,30 +39,36 @@ import json, logging, pickle, time
 log = logging.getLogger(__name__)
 cacheroot = Path.home() / '.cache' / 'pyoneten'
 
-def loadorcreate(name, factory):
+def loadorcreate(name, factory, context):
     cachepath = cacheroot / name
     try:
         with cachepath.open('rb') as f:
             log.debug("Load cached: %s", name)
-            return pickle.load(f)
+            obj = pickle.load(f)
+            if obj.validate(context):
+                return obj
     except FileNotFoundError:
-        log.debug("Generate: %s", name)
-        obj = factory()
-        with atomic(cachepath) as p, p.open('wb') as f:
-            pickle.dump(obj, f)
-        return obj
+        pass
+    log.debug("Generate: %s", name)
+    obj = factory()
+    with atomic(cachepath) as p, p.open('wb') as f:
+        pickle.dump(obj, f)
+    return obj
 
 class Identity:
 
     @classmethod
     def loadorcreate(cls):
-        return loadorcreate('identity', cls)
+        return loadorcreate('identity', cls, None)
 
     def __init__(self):
         key = RSA.generate(1024)
         self.privatekey = key.export_key()
         self.publickey  = key.publickey().export_key().decode('ascii')
         self.terminaluuid = str(uuid4())
+
+    def validate(self, context):
+        return True
 
     def decrypt(self, data):
         return PKCS1_v1_5.new(RSA.importKey(self.privatekey)).decrypt(data, None)
@@ -110,12 +116,16 @@ class Pad:
 class Cipher:
 
     @classmethod
-    def create(cls, data):
-        return cls(data[:16], data[16:])
+    def create(cls, terminaluuid, data):
+        return cls(terminaluuid, data[:16], data[16:])
 
-    def __init__(self, key, iv):
+    def __init__(self, terminaluuid, key, iv):
+        self.terminaluuid = terminaluuid
         self.key = key
         self.iv = iv
+
+    def validate(self, context):
+        return self.terminaluuid == context.terminaluuid
 
     def _aes(self):
         return AES.new(self.key, AES.MODE_CBC, self.iv)

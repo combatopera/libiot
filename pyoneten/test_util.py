@@ -33,7 +33,7 @@ from unittest import TestCase
 class TestCipher(TestCase):
 
     def setUp(self):
-        self.c = Cipher.create(sha256(b'very secure phrase').digest())
+        self.c = Cipher.create(None, sha256(b'very secure phrase').digest())
 
     def test_works(self):
         ciphertext = self.c.encrypt('woo')

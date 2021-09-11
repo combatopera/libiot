@@ -54,13 +54,13 @@ class P110:
         return self.session.post(f"http://{self.host}/app", params = self.reqparams, json = kwargs, timeout = self.timeout)
 
     def _handshake(self):
-        return Cipher.create(self.identity.decrypt(b64decode(P110Exception.check(self._post(
+        return Cipher.create(self.identity.terminaluuid, self.identity.decrypt(b64decode(P110Exception.check(self._post(
             method = 'handshake',
             params = self.identity.handshakepayload(),
         ).json())['key'])))
 
     def handshake(self):
-        self.cipher = loadorcreate(Path(self.host, 'cipher'), self._handshake)
+        self.cipher = loadorcreate(Path(self.host, 'cipher'), self._handshake, self.identity)
 
     def __getattr__(self, methodname):
         def method(**methodparams):
