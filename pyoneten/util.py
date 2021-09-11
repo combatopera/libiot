@@ -29,6 +29,7 @@
 from base64 import b64decode, b64encode
 from Crypto.Cipher import AES, PKCS1_v1_5
 from Crypto.PublicKey import RSA
+from lagoon.util import atomic
 from pathlib import Path
 from pkcs7 import PKCS7Encoder
 from uuid import uuid4
@@ -47,8 +48,7 @@ class Identity:
             with cls.cachepath.open('rb') as f:
                 return pickle.load(f)
         identity = cls()
-        cls.cachepath.parent.mkdir(parents = True, exist_ok = True)
-        with cls.cachepath.open('wb') as f:
+        with atomic(cls.cachepath) as p, p.open('wb') as f:
             pickle.dump(identity, f)
         return identity
 
