@@ -26,7 +26,7 @@
 #
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-from .util import b64str, Cipher, loadorcreate, P110Exception
+from .util import b64str, Cipher, loadorcreate, P110Exception, persist
 from base64 import b64decode
 from hashlib import sha1
 from requests import Session
@@ -54,6 +54,13 @@ class P110:
 
     def validate(self, context):
         return self.identity.terminaluuid == context.terminaluuid
+
+    def __enter__(self):
+        pass
+
+    def __exit__(self, *exc_info):
+        if (None, None, None) == exc_info:
+            persist(self.host, self)
 
     def _post(self, **kwargs):
         try:

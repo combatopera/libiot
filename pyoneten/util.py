@@ -40,9 +40,8 @@ log = logging.getLogger(__name__)
 cacheroot = Path.home() / '.cache' / 'pyoneten'
 
 def loadorcreate(name, factory, context):
-    cachepath = cacheroot / name
     try:
-        with cachepath.open('rb') as f:
+        with (cacheroot / name).open('rb') as f:
             log.debug("Load cached: %s", name)
             obj = pickle.load(f)
             if obj.validate(context):
@@ -51,9 +50,12 @@ def loadorcreate(name, factory, context):
         pass
     log.debug("Generate: %s", name)
     obj = factory()
-    with atomic(cachepath) as p, p.open('wb') as f:
-        pickle.dump(obj, f)
+    persist(name, obj)
     return obj
+
+def persist(name, obj):
+    with atomic(cacheroot / name) as p, p.open('wb') as f:
+        pickle.dump(obj, f)
 
 class Identity:
 
