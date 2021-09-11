@@ -63,7 +63,7 @@ class P110:
         return self.session.post(f"http://{self.host}/app", **d, json = kwargs, timeout = self.timeout)
 
     def _handshake(self):
-        self.cipher = Cipher.create(self.identity, self.identity.decrypt(b64decode(P110Exception.check(self._post(
+        self.cipher = Cipher.create(self.identity.decrypt(b64decode(P110Exception.check(self._post(
             method = 'handshake',
             params = self.identity.handshakepayload(),
         ).json())['key'])))
@@ -86,6 +86,7 @@ class P110:
         return method
 
     def _login(self):
+        self.reqparams = {}
         self.reqparams = dict(token = self.login_device(**self.loginparams)['token'])
 
     def ison(self):
