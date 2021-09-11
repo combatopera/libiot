@@ -29,24 +29,19 @@
 from .util import b64str, Cipher, loadorcreate, P110Exception
 from base64 import b64decode
 from hashlib import sha1
-from pathlib import Path
-import logging, requests
+from requests import Session
+import logging
 
 log = logging.getLogger(__name__)
-
-class Session:
-
-    def __init__(self, context):
-        self.s = requests.Session()
-        self.terminaluuid = context.terminaluuid
-
-    def validate(self, context):
-        return self.terminaluuid == context.terminaluuid
 
 class P110:
 
     charset = 'utf-8'
     reqparams = {}
+
+    @classmethod
+    def loadorcreate(cls, config, identity):
+        return loadorcreate(config.host, lambda: cls(config, identity), identity)
 
     def __init__(self, config, identity):
         self.host = config.host
@@ -55,22 +50,24 @@ class P110:
             password = b64str(config.password.encode(self.charset)),
         )
         self.timeout = config.timeout
-        self.session = loadorcreate(Path(self.host, 'session'), lambda: Session(identity), identity)
+        self.session = Session()
         self.identity = identity
 
-    def _post(self, **kwargs):
-        return self.session.s.post(f"http://{self.host}/app", params = self.reqparams, json = kwargs, timeout = self.timeout)
+    def validate(self, context):
+        return self.identity.terminaluuid == context.terminaluuid
 
-    def _handshake(self):
-        return Cipher.create(self.identity, self.identity.decrypt(b64decode(P110Exception.check(self._post(
+    def _post(self, **kwargs):
+        return self.session.post(f"http://{self.host}/app", params = self.reqparams, json = kwargs, timeout = self.timeout)
+
+    def handshake(self):
+        self.cipher = Cipher.create(self.identity, self.identity.decrypt(b64decode(P110Exception.check(self._post(
             method = 'handshake',
             params = self.identity.handshakepayload(),
         ).json())['key'])))
 
-    def handshake(self):
-        self.cipher = loadorcreate(Path(self.host, 'cipher'), self._handshake, self.identity)
-
     def __getattr__(self, methodname):
+        if methodname.startswith('__'):
+            raise AttributeError(methodname)
         def method(**methodparams):
             return P110Exception.check(self.cipher.decrypt(P110Exception.check(self._post(
                 method = 'securePassthrough',
