@@ -29,6 +29,7 @@
 from base64 import b64decode, b64encode
 from Crypto.Cipher import AES, PKCS1_v1_5
 from Crypto.PublicKey import RSA
+from diapyr.util import singleton
 from lagoon.util import atomic
 from pathlib import Path
 from pkcs7 import PKCS7Encoder
@@ -93,6 +94,7 @@ class P110Exception(Exception):
 def b64str(data):
     return b64encode(data).decode('ascii')
 
+@singleton
 class Pad:
 
     def __init__(self):
@@ -103,8 +105,6 @@ class Pad:
         return lambda data: m(data.decode('latin-1')).encode('latin-1')
 
 class Cipher:
-
-    pad = Pad()
 
     @classmethod
     def create(cls, data):
@@ -118,7 +118,7 @@ class Cipher:
         return AES.new(self.key, AES.MODE_CBC, self.iv)
 
     def encrypt(self, obj):
-        return b64str(self._aes().encrypt(self.pad.encode(json.dumps(obj).encode('ascii'))))
+        return b64str(self._aes().encrypt(Pad.encode(json.dumps(obj).encode('ascii'))))
 
     def decrypt(self, text):
-        return json.loads(self.pad.decode(self._aes().decrypt(b64decode(text))))
+        return json.loads(Pad.decode(self._aes().decrypt(b64decode(text))))
