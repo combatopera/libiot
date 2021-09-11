@@ -39,15 +39,15 @@ class P110:
     charset = 'utf-8'
     reqparams = {}
 
-    def __init__(self, identity, ipAddress, email, password, timeout = 10):
+    def __init__(self, config, identity):
+        self.url = f"http://{config.host}/app"
+        self.loginparams = dict(
+            username = b64str(sha1(config.username.encode(self.charset)).hexdigest().encode('ascii')),
+            password = b64str(config.password.encode(self.charset)),
+        )
+        self.timeout = config.timeout
         self.identity = identity
         self.session = Session()
-        self.url = f"http://{ipAddress}/app"
-        self.loginparams = dict(
-            username = b64str(sha1(email.encode(self.charset)).hexdigest().encode('ascii')),
-            password = b64str(password.encode(self.charset)),
-        )
-        self.timeout = timeout
 
     def _post(self, **kwargs):
         return self.session.post(self.url, params = self.reqparams, json = kwargs, timeout = self.timeout)
