@@ -116,8 +116,8 @@ class Pad:
 class Cipher:
 
     @classmethod
-    def create(cls, terminaluuid, data):
-        return cls(terminaluuid, data[:16], data[16:])
+    def create(cls, context, data):
+        return cls(context.terminaluuid, data[:16], data[16:])
 
     def __init__(self, terminaluuid, key, iv):
         self.terminaluuid = terminaluuid

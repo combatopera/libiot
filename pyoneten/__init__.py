@@ -30,10 +30,18 @@ from .util import b64str, Cipher, loadorcreate, P110Exception
 from base64 import b64decode
 from hashlib import sha1
 from pathlib import Path
-from requests import Session
-import logging
+import logging, requests
 
 log = logging.getLogger(__name__)
+
+class Session:
+
+    def __init__(self, context):
+        self.s = requests.Session()
+        self.terminaluuid = context.terminaluuid
+
+    def validate(self, context):
+        return self.terminaluuid == context.terminaluuid
 
 class P110:
 
@@ -47,14 +55,14 @@ class P110:
             password = b64str(config.password.encode(self.charset)),
         )
         self.timeout = config.timeout
+        self.session = loadorcreate(Path(self.host, 'session'), lambda: Session(identity), identity)
         self.identity = identity
-        self.session = Session()
 
     def _post(self, **kwargs):
-        return self.session.post(f"http://{self.host}/app", params = self.reqparams, json = kwargs, timeout = self.timeout)
+        return self.session.s.post(f"http://{self.host}/app", params = self.reqparams, json = kwargs, timeout = self.timeout)
 
     def _handshake(self):
-        return Cipher.create(self.identity.terminaluuid, self.identity.decrypt(b64decode(P110Exception.check(self._post(
+        return Cipher.create(self.identity, self.identity.decrypt(b64decode(P110Exception.check(self._post(
             method = 'handshake',
             params = self.identity.handshakepayload(),
         ).json())['key'])))
