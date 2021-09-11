@@ -56,7 +56,7 @@ class P110:
         return self.identity.terminaluuid == context.terminaluuid
 
     def __enter__(self):
-        pass
+        return self
 
     def __exit__(self, *exc_info):
         if (None, None, None) == exc_info:
