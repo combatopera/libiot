@@ -37,7 +37,6 @@ log = logging.getLogger(__name__)
 class P110:
 
     charset = 'utf-8'
-    reqparams = {}
 
     @classmethod
     def loadorcreate(cls, config, identity):
@@ -57,18 +56,26 @@ class P110:
         return self.identity.terminaluuid == context.terminaluuid
 
     def _post(self, **kwargs):
-        return self.session.post(f"http://{self.host}/app", params = self.reqparams, json = kwargs, timeout = self.timeout)
+        try:
+            d = dict(params = self.reqparams)
+        except AttributeError:
+            d = {}
+        return self.session.post(f"http://{self.host}/app", **d, json = kwargs, timeout = self.timeout)
 
-    def handshake(self):
+    def _handshake(self):
         self.cipher = Cipher.create(self.identity, self.identity.decrypt(b64decode(P110Exception.check(self._post(
             method = 'handshake',
             params = self.identity.handshakepayload(),
         ).json())['key'])))
 
     def __getattr__(self, methodname):
-        if methodname.startswith('__'):
+        if methodname.startswith('__') or methodname in {'cipher', 'reqparams'}:
             raise AttributeError(methodname)
         def method(**methodparams):
+            if not hasattr(self, 'cipher'):
+                self._handshake()
+            if not hasattr(self, 'reqparams'):
+                self._login()
             return P110Exception.check(self.cipher.decrypt(P110Exception.check(self._post(
                 method = 'securePassthrough',
                 params = dict(request = self.cipher.encrypt(self.identity.payload(
@@ -78,7 +85,7 @@ class P110:
             ).json())['response']))
         return method
 
-    def login(self):
+    def _login(self):
         self.reqparams = dict(token = self.login_device(**self.loginparams)['token'])
 
     def ison(self):
