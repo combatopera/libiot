@@ -26,9 +26,10 @@
 #
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-from .util import b64str, P110Exception, Cipher
+from .util import b64str, Cipher, loadorcreate, P110Exception
 from base64 import b64decode
 from hashlib import sha1
+from pathlib import Path
 from requests import Session
 import logging
 
@@ -40,7 +41,7 @@ class P110:
     reqparams = {}
 
     def __init__(self, config, identity):
-        self.url = f"http://{config.host}/app"
+        self.host = config.host
         self.loginparams = dict(
             username = b64str(sha1(config.username.encode(self.charset)).hexdigest().encode('ascii')),
             password = b64str(config.password.encode(self.charset)),
@@ -50,13 +51,16 @@ class P110:
         self.session = Session()
 
     def _post(self, **kwargs):
-        return self.session.post(self.url, params = self.reqparams, json = kwargs, timeout = self.timeout)
+        return self.session.post(f"http://{self.host}/app", params = self.reqparams, json = kwargs, timeout = self.timeout)
 
-    def handshake(self):
-        self.cipher = Cipher.create(self.identity.decrypt(b64decode(P110Exception.check(self._post(
+    def _handshake(self):
+        return Cipher.create(self.identity.decrypt(b64decode(P110Exception.check(self._post(
             method = 'handshake',
             params = self.identity.handshakepayload(),
         ).json())['key'])))
+
+    def handshake(self):
+        self.cipher = loadorcreate(Path(self.host, 'cipher'), self._handshake)
 
     def __getattr__(self, methodname):
         def method(**methodparams):

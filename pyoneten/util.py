@@ -37,25 +37,28 @@ from uuid import uuid4
 import json, logging, pickle, time
 
 log = logging.getLogger(__name__)
+cacheroot = Path.home() / '.cache' / 'pyoneten'
+
+def loadorcreate(name, factory):
+    cachepath = cacheroot / name
+    try:
+        with cachepath.open('rb') as f:
+            log.debug("Load cached: %s", name)
+            return pickle.load(f)
+    except FileNotFoundError:
+        log.debug("Generate: %s", name)
+        obj = factory()
+        with atomic(cachepath) as p, p.open('wb') as f:
+            pickle.dump(obj, f)
+        return obj
 
 class Identity:
 
-    cachepath = Path.home() / '.cache' / 'pyoneten' / 'identity'
-
     @classmethod
     def loadorcreate(cls):
-        try:
-            with cls.cachepath.open('rb') as f:
-                log.debug('Load cached identity.')
-                return pickle.load(f)
-        except FileNotFoundError:
-            identity = cls()
-            with atomic(cls.cachepath) as p, p.open('wb') as f:
-                pickle.dump(identity, f)
-            return identity
+        return loadorcreate('identity', cls)
 
     def __init__(self):
-        log.debug('Generate key pair.')
         key = RSA.generate(1024)
         self.privatekey = key.export_key()
         self.publickey  = key.publickey().export_key().decode('ascii')
