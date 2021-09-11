@@ -93,21 +93,18 @@ class P110Exception(Exception):
 def b64str(data):
     return b64encode(data).decode('ascii')
 
+class Pad:
+
+    def __init__(self):
+        self.encoder = PKCS7Encoder()
+
+    def __getattr__(self, methodname):
+        m = getattr(self.encoder, methodname)
+        return lambda data: m(data.decode('latin-1')).encode('latin-1')
+
 class Cipher:
 
-    encoder = PKCS7Encoder()
-
-    @staticmethod
-    def _runpkcs7(method, data):
-        return method(data.decode('latin-1')).encode('latin-1')
-
-    @classmethod
-    def _pad(cls, data):
-        return cls._runpkcs7(cls.encoder.encode, data)
-
-    @classmethod
-    def _unpad(cls, data):
-        return cls._runpkcs7(cls.encoder.decode, data)
+    pad = Pad()
 
     @classmethod
     def create(cls, data):
@@ -121,7 +118,7 @@ class Cipher:
         return AES.new(self.key, AES.MODE_CBC, self.iv)
 
     def encrypt(self, obj):
-        return b64str(self._aes().encrypt(self._pad(json.dumps(obj).encode('ascii'))))
+        return b64str(self._aes().encrypt(self.pad.encode(json.dumps(obj).encode('ascii'))))
 
     def decrypt(self, text):
-        return json.loads(self._unpad(self._aes().decrypt(b64decode(text))))
+        return json.loads(self.pad.decode(self._aes().decrypt(b64decode(text))))
