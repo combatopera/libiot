@@ -116,16 +116,12 @@ class Pad:
 class Cipher:
 
     @classmethod
-    def create(cls, context, data):
-        return cls(context.terminaluuid, data[:16], data[16:])
+    def create(cls, data):
+        return cls(data[:16], data[16:])
 
-    def __init__(self, terminaluuid, key, iv):
-        self.terminaluuid = terminaluuid
+    def __init__(self, key, iv):
         self.key = key
         self.iv = iv
-
-    def validate(self, context):
-        return self.terminaluuid == context.terminaluuid
 
     def _aes(self):
         return AES.new(self.key, AES.MODE_CBC, self.iv)
