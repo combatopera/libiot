@@ -95,10 +95,11 @@ class P110:
                 except P110Exception as e:
                     if 9999 != e.error_code:
                         raise
-                    if hasattr(self, 'reqparams'):
-                        del self.reqparams
-                    if hasattr(self, 'cipher'):
-                        del self.cipher
+                    for name in 'reqparams', 'cipher':
+                        try:
+                            delattr(self, name)
+                        except AttributeError:
+                            pass
                     self.session = Session()
         return method
 
