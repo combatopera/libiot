@@ -102,6 +102,10 @@ class P110Exception(Exception):
             raise cls(response, cls.messages.get(errorcode))
         return response.get('result')
 
+    @property
+    def error_code(self):
+        return self.args[0]['error_code']
+
 def b64str(data):
     return b64encode(data).decode('ascii')
 

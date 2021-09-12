@@ -79,17 +79,27 @@ class P110:
         if methodname.startswith('__') or methodname in {'cipher', 'reqparams'}:
             raise AttributeError(methodname)
         def method(**methodparams):
-            if not hasattr(self, 'cipher'):
-                self._handshake()
-            if not hasattr(self, 'reqparams'):
-                self._login()
-            return P110Exception.check(self.cipher.decrypt(P110Exception.check(self._post(
-                method = 'securePassthrough',
-                params = dict(request = self.cipher.encrypt(self.identity.payload(
-                    method = methodname,
-                    params = methodparams,
-                ))),
-            ).json())['response']))
+            while True:
+                if not hasattr(self, 'cipher'):
+                    self._handshake()
+                if not hasattr(self, 'reqparams'):
+                    self._login()
+                try:
+                    return P110Exception.check(self.cipher.decrypt(P110Exception.check(self._post(
+                        method = 'securePassthrough',
+                        params = dict(request = self.cipher.encrypt(self.identity.payload(
+                            method = methodname,
+                            params = methodparams,
+                        ))),
+                    ).json())['response']))
+                except P110Exception as e:
+                    if 9999 != e.error_code:
+                        raise
+                    if hasattr(self, 'reqparams'):
+                        del self.reqparams
+                    if hasattr(self, 'cipher'):
+                        del self.cipher
+                    self.session = Session()
         return method
 
     def _login(self):
