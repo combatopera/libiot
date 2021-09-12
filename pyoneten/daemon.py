@@ -29,19 +29,33 @@
 from . import P110
 from .util import Identity
 from aridity.config import ConfigCtrl
+from concurrent.futures import ThreadPoolExecutor
+from diapyr.util import invokeall
 from http.server import BaseHTTPRequestHandler, HTTPServer
+from requests.exceptions import ConnectionError, ReadTimeout
 import logging
 
+log = logging.getLogger(__name__)
+timeoutexceptions = ConnectionError, ReadTimeout
 INADDR_ANY = ''
 host = INADDR_ANY
 port = 8110
+
+def _command(command, p110):
+    log.info("Try: %s", p110)
+    while True:
+        try:
+            return command(p110)
+        except timeoutexceptions:
+            log.exception("Retry: %s", p110)
 
 def main_tapod():
     logging.basicConfig(level = logging.DEBUG)
     class Handler(BaseHTTPRequestHandler):
         def do_GET(self):
-            command = self.path[1:]
-            results = [getattr(plug, command)() for plug in plugs]
+            command = getattr(P110, self.path[1:])
+            with ThreadPoolExecutor() as e:
+                results = invokeall([e.submit(_command, command, plug).result for plug in plugs])
             self.send_response(200)
             self.end_headers()
             for result in results:
