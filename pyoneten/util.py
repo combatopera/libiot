@@ -60,6 +60,9 @@ class Persistent:
         with atomic(self.cacheroot / name) as p, p.open('wb') as f:
             pickle.dump(self, f)
 
+    def validate(self, *context):
+        raise NotImplementedError
+
 class Identity(Persistent):
 
     @classmethod
