@@ -52,8 +52,8 @@ class P110:
         self.session = Session()
         self.identity = identity
 
-    def validate(self, context):
-        return self.identity.terminaluuid == context.terminaluuid
+    def validate(self, contextidentity):
+        return self.identity.terminaluuid == contextidentity.terminaluuid
 
     def __enter__(self):
         return self

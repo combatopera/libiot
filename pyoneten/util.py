@@ -39,12 +39,12 @@ import json, logging, pickle, time
 log = logging.getLogger(__name__)
 cacheroot = Path.home() / '.cache' / 'pyoneten'
 
-def loadorcreate(name, factory, context):
+def loadorcreate(name, factory, *context):
     try:
         with (cacheroot / name).open('rb') as f:
             log.debug("Load cached: %s", name)
             obj = pickle.load(f)
-            if obj.validate(context):
+            if obj.validate(*context):
                 return obj
     except FileNotFoundError:
         pass
@@ -61,7 +61,7 @@ class Identity:
 
     @classmethod
     def loadorcreate(cls):
-        return loadorcreate('identity', cls, None)
+        return loadorcreate('identity', cls)
 
     def __init__(self):
         key = RSA.generate(1024)
@@ -69,7 +69,7 @@ class Identity:
         self.publickey  = key.publickey().export_key().decode('ascii')
         self.terminaluuid = str(uuid4())
 
-    def validate(self, context):
+    def validate(self):
         return True
 
     def decrypt(self, data):
