@@ -92,7 +92,7 @@ class P110Exception(Exception):
         -1012: 'Invalid terminalUUID',
         -1010: 'Invalid Public Key Length',
         -1003: 'JSON formatting error',
-        1002: 'Incorrect Request',
+        -1002: 'Incorrect Request',
     }
 
     @classmethod
