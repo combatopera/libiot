@@ -37,11 +37,10 @@ from uuid import uuid4
 import json, logging, pickle, time
 
 log = logging.getLogger(__name__)
-cacheroot = Path.home() / '.cache' / 'pyoneten'
 
 def loadorcreate(name, factory, *context):
     try:
-        with (cacheroot / name).open('rb') as f:
+        with (Persistent.cacheroot / name).open('rb') as f:
             log.debug("Load cached: %s", name)
             obj = pickle.load(f)
             if obj.validate(*context):
@@ -50,14 +49,18 @@ def loadorcreate(name, factory, *context):
         pass
     log.debug("Generate: %s", name)
     obj = factory()
-    persist(name, obj)
+    obj.persist(name)
     return obj
 
-def persist(name, obj):
-    with atomic(cacheroot / name) as p, p.open('wb') as f:
-        pickle.dump(obj, f)
+class Persistent:
 
-class Identity:
+    cacheroot = Path.home() / '.cache' / 'pyoneten'
+
+    def persist(self, name):
+        with atomic(self.cacheroot / name) as p, p.open('wb') as f:
+            pickle.dump(self, f)
+
+class Identity(Persistent):
 
     @classmethod
     def loadorcreate(cls):

@@ -26,7 +26,7 @@
 #
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-from .util import b64str, Cipher, loadorcreate, P110Exception, persist
+from .util import b64str, Cipher, loadorcreate, P110Exception, Persistent
 from base64 import b64decode
 from hashlib import sha1
 from requests import Session
@@ -34,7 +34,7 @@ import logging
 
 log = logging.getLogger(__name__)
 
-class P110:
+class P110(Persistent):
 
     charset = 'utf-8'
 
@@ -60,7 +60,7 @@ class P110:
 
     def __exit__(self, *exc_info):
         if (None, None, None) == exc_info:
-            persist(self.host, self)
+            self.persist(self.host)
 
     def _post(self, **kwargs):
         try:
