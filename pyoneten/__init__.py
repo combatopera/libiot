@@ -82,7 +82,7 @@ class P110:
             while True:
                 if not hasattr(self, 'cipher'):
                     self._handshake()
-                if not hasattr(self, 'reqparams'):
+                if not hasattr(self, 'reqparams') and 'login_device' != methodname:
                     self._login()
                 try:
                     return P110Exception.check(self.cipher.decrypt(P110Exception.check(self._post(
@@ -104,7 +104,6 @@ class P110:
         return method
 
     def _login(self):
-        self.reqparams = {}
         self.reqparams = dict(token = self.login_device(**self.loginparams)['token'])
 
     def ison(self):
