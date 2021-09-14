@@ -34,7 +34,7 @@ from getpass import getpass
 from lagoon.util import atomic
 from pathlib import Path
 from pkcs7 import PKCS7Encoder
-import json, logging, pickle
+import json, logging, os, pickle
 
 log = logging.getLogger(__name__)
 
@@ -119,6 +119,7 @@ class Cipher:
 
 @contextmanager
 def getpassword(service, username, force):
+    os.environ['DBUS_SESSION_BUS_ADDRESS'] = f"unix:path=/run/user/{os.geteuid()}/bus"
     from keyring import get_password, set_password
     password = None if force else get_password(service, username)
     if password is None:
