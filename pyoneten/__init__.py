@@ -26,7 +26,7 @@
 #
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-from .util import b64str, Cipher, loadorcreate, P110Exception, Persistent
+from .util import b64str, Cipher, P110Exception, Persistent
 from base64 import b64decode
 from hashlib import sha1
 from requests import Session
@@ -40,7 +40,7 @@ class P110(Persistent):
 
     @classmethod
     def loadorcreate(cls, config, identity):
-        return loadorcreate(config.host, cls, [config, identity], identity)
+        return super().loadorcreate(config.host, [config, identity], identity)
 
     def __init__(self, config, identity):
         self.host = config.host

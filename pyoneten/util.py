@@ -38,23 +38,24 @@ import json, logging, pickle, time
 
 log = logging.getLogger(__name__)
 
-def loadorcreate(name, factory, args, *context):
-    try:
-        with (Persistent.cacheroot / name).open('rb') as f:
-            log.debug("Load cached: %s", name)
-            obj = pickle.load(f)
-            if obj.validate(*context):
-                return obj
-    except FileNotFoundError:
-        pass
-    log.debug("Generate: %s", name)
-    obj = factory(*args)
-    obj.persist(name)
-    return obj
-
 class Persistent:
 
     cacheroot = Path.home() / '.cache' / 'pyoneten'
+
+    @classmethod
+    def loadorcreate(cls, name, args, *context):
+        try:
+            with (cls.cacheroot / name).open('rb') as f:
+                log.debug("Load cached: %s", name)
+                obj = pickle.load(f)
+                if obj.validate(*context):
+                    return obj
+        except FileNotFoundError:
+            pass
+        log.debug("Generate: %s", name)
+        obj = cls(*args)
+        obj.persist(name)
+        return obj
 
     def persist(self, name):
         with atomic(self.cacheroot / name) as p, p.open('wb') as f:
@@ -67,7 +68,7 @@ class Identity(Persistent):
 
     @classmethod
     def loadorcreate(cls):
-        return loadorcreate('identity', cls, [])
+        return super().loadorcreate('identity', [])
 
     def __init__(self):
         key = RSA.generate(1024)
