@@ -94,19 +94,22 @@ def main_p110():
 
 class Delegate(DefaultDelegate):
 
+    readint = partial(int.from_bytes, byteorder = 'little')
+
     def handleNotification(self, cHandle, data):
         self.result = dict(
-            temperature = int.from_bytes(data[:2], byteorder = 'little', signed = True) / 100,
-            humidity = int.from_bytes(data[2:3], byteorder = 'little'),
-            voltage = int.from_bytes(data[3:], byteorder = 'little') / 1000,
+            temperature = self.readint(data[:2], signed = True) / 100,
+            humidity = self.readint(data[2:3]),
+            voltage = self.readint(data[3:]) / 1000,
         )
 
 def main_mijia():
     _initlogging()
     d = Delegate()
     p = Peripheral('A4:C1:38:01:E0:46').withDelegate(d)
-    p.writeCharacteristic(0x38, b'\x01\x00', True)
-    p.writeCharacteristic(0x46, b'\xf4\x01\x00', True)
+    conf = partial(p.writeCharacteristic, withResponse = True)
+    conf(0x38, b'\x01\x00')
+    conf(0x46, b'\xf4\x01\x00')
     while not p.waitForNotifications(1):
         pass
     print(d.result)
