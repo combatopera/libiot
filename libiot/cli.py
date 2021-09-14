@@ -104,9 +104,6 @@ class Delegate(DefaultDelegate):
         )
 
 def main_mijia():
-    def conf(*args):
-        log.info("Write: %s", args)
-        p.writeCharacteristic(*args, withResponse = True)
     _initlogging()
     d = Delegate()
     address = 'A4:C1:38:01:E0:46'
@@ -114,8 +111,8 @@ def main_mijia():
         try:
             log.info("Connect: %s", address)
             p = Peripheral(address).withDelegate(d)
-            conf(0x38, b'\x01\x00')
-            conf(0x46, b'\xf4\x01\x00')
+            p.writeCharacteristic(0x38, b'\x01\x00')
+            p.writeCharacteristic(0x46, b'\xf4\x01\x00')
             log.info('Await notification.')
             while not p.waitForNotifications(1):
                 pass
