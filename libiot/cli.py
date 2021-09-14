@@ -33,7 +33,12 @@ from concurrent.futures import ThreadPoolExecutor
 from contextlib import ExitStack
 from datetime import datetime
 from diapyr.util import invokeall
+from functools import partial
+from requests.exceptions import ConnectionError, ReadTimeout
 import json, logging, pytz
+
+log = logging.getLogger(__name__)
+timeoutexceptions = ConnectionError, ReadTimeout
 
 def _initlogging():
     logging.basicConfig(format = "%(asctime)s %(levelname)s %(message)s", level = logging.DEBUG)
@@ -50,13 +55,32 @@ class CLIP110(P110):
     def power(self):
         return self.get_energy_usage()['current_power'] / 1000
 
+class Retry:
+
+    def fail(f):
+        return f()
+
+    def null(f):
+        try:
+            return f()
+        except timeoutexceptions:
+            log.exception('Timeout:')
+
+    def inf(f):
+        while True:
+            try:
+                return f()
+            except timeoutexceptions:
+                log.exception('Timeout:')
+
 def main_p110():
     _initlogging()
     config = ConfigCtrl().loadappconfig(main_p110, 'p110.arid')
     parser = ArgumentParser()
+    parser.add_argument('--retry', type = lambda n: getattr(Retry, n), default = Retry.fail)
     parser.add_argument('command')
     parser.parse_args(namespace = config.cli)
     plugs = dict(-config.plug)
     identity = Identity.loadorcreate()
     with ThreadPoolExecutor() as e, ExitStack() as stack:
-        print(json.dumps(dict(zip(plugs, invokeall([e.submit(config.command, stack.enter_context(P110.loadorcreate(conf, identity))).result for name, conf in plugs.items()])))))
+        print(json.dumps(dict(zip(plugs, invokeall([e.submit(config.retry, partial(config.command, stack.enter_context(P110.loadorcreate(conf, identity)))).result for name, conf in plugs.items()])))))

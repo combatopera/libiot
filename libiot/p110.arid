@@ -32,3 +32,4 @@ password = $(void)
 timeout = 5
 cli command = $(void)
 command = $pyref(libiot.cli CLIP110.$(cli command))
+retry = $(cli retry)
