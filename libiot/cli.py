@@ -27,6 +27,7 @@
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 from .p110 import Identity, P110
+from argparse import ArgumentParser
 from aridity.config import ConfigCtrl
 import logging
 
@@ -36,7 +37,10 @@ def _initlogging():
 def main_p110():
     _initlogging()
     config = ConfigCtrl().loadappconfig(main_p110, 'p110.arid')
+    parser = ArgumentParser()
+    parser.add_argument('command')
+    parser.parse_args(namespace = config.cli)
     identity = Identity.loadorcreate()
     for name, conf in -config.plug:
         with P110.loadorcreate(conf, identity) as p110:
-            print(p110.get_energy_usage())
+            print(config.command(p110))

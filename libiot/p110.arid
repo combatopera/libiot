@@ -30,3 +30,5 @@ plug * host = $(void)
 username = $(void)
 password = $(void)
 timeout = 5
+cli command = $(void)
+command = $pyref(libiot.p110 P110.$(cli command))
