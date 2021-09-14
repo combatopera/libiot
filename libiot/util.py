@@ -1,19 +1,19 @@
 # Copyright 2021 Andrzej Cichocki
 
-# This file is part of pyoneten.
+# This file is part of libiot.
 #
-# pyoneten is free software: you can redistribute it and/or modify
+# libiot is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
 #
-# pyoneten is distributed in the hope that it will be useful,
+# libiot is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with pyoneten.  If not, see <http://www.gnu.org/licenses/>.
+# along with libiot.  If not, see <http://www.gnu.org/licenses/>.
 
 # This file incorporates work covered by the following copyright and
 # permission notice:
@@ -40,7 +40,7 @@ log = logging.getLogger(__name__)
 
 class Persistent:
 
-    cacheroot = Path.home() / '.cache' / 'pyoneten'
+    cacheroot = Path.home() / '.cache' / 'libiot'
 
     @classmethod
     def loadorcreate(cls, name, args, *context):
