@@ -37,6 +37,17 @@ import json, logging
 def _initlogging():
     logging.basicConfig(format = "%(asctime)s %(levelname)s %(message)s", level = logging.DEBUG)
 
+class CLIP110(P110):
+
+    def status(self):
+        return 'on' if self.ison() else 'off'
+
+    def time(self):
+        return self.get_device_time()
+
+    def usage(self):
+        return self.get_energy_usage()
+
 def main_p110():
     _initlogging()
     config = ConfigCtrl().loadappconfig(main_p110, 'p110.arid')
