@@ -30,6 +30,8 @@ plug * host = $(void)
 username = $(void)
 password = $(void)
 timeout = 5
-cli command = $(void)
+cli
+    command = $(void)
+    retry = fail
 command = $pyref(libiot.cli CLIP110.$(cli command))
-retry = $(cli retry)
+retry scheme = $pyref(libiot.cli Retry.$(cli retry))

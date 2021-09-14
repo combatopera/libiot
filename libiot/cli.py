@@ -77,10 +77,10 @@ def main_p110():
     _initlogging()
     config = ConfigCtrl().loadappconfig(main_p110, 'p110.arid')
     parser = ArgumentParser()
-    parser.add_argument('--retry', type = lambda n: getattr(Retry, n), default = Retry.fail)
+    parser.add_argument('--retry')
     parser.add_argument('command')
     parser.parse_args(namespace = config.cli)
     plugs = dict(-config.plug)
     identity = Identity.loadorcreate()
     with ThreadPoolExecutor() as e, ExitStack() as stack:
-        print(json.dumps(dict(zip(plugs, invokeall([e.submit(config.retry, partial(config.command, stack.enter_context(P110.loadorcreate(conf, identity)))).result for name, conf in plugs.items()])))))
+        print(json.dumps(dict(zip(plugs, invokeall([e.submit(config.retry.scheme, partial(config.command, stack.enter_context(P110.loadorcreate(conf, identity)))).result for name, conf in plugs.items()])))))
