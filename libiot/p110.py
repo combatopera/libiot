@@ -46,7 +46,7 @@ class P110(Persistent):
         self.host = config.host
         self.loginparams = dict(
             username = b64str(sha1(config.username.encode(self.charset)).hexdigest().encode('ascii')),
-            password = b64str(config.password.encode(self.charset)),
+            password = b64str(config.password.encode(self.charset)), # TODO: Save in keyring.
         )
         self.timeout = config.timeout
         self.session = Session()
