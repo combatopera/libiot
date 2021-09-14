@@ -34,4 +34,7 @@ cli
     command = $(void)
     retry = fail
 command = $pyref(libiot.cli CLIP110.$(cli command))
-retry scheme = $pyref(libiot.cli Retry.$(cli retry))
+retry
+    scheme = $pyref(libiot.cli Retry.$(cli retry))
+    minutes = 90
+    seconds = $mul($(minutes) 60)

@@ -35,7 +35,7 @@ from datetime import datetime
 from diapyr.util import invokeall
 from functools import partial
 from requests.exceptions import ConnectionError, ReadTimeout
-import json, logging, pytz
+import json, logging, pytz, time
 
 log = logging.getLogger(__name__)
 timeoutexceptions = ConnectionError, ReadTimeout
@@ -57,20 +57,22 @@ class CLIP110(P110):
 
 class Retry:
 
-    def fail(f):
+    def fail(giveup, f):
         return f()
 
-    def null(f):
+    def null(giveup, f):
         try:
             return f()
         except timeoutexceptions:
             log.exception('Timeout:')
 
-    def inf(f):
+    def multi(giveup, f):
         while True:
             try:
                 return f()
             except timeoutexceptions:
+                if time.time() >= giveup:
+                    raise
                 log.exception('Timeout:')
 
 def main_p110():
@@ -81,6 +83,7 @@ def main_p110():
     parser.add_argument('command')
     parser.parse_args(namespace = config.cli)
     plugs = dict(-config.plug)
+    giveup = time.time() + config.retry.seconds
     identity = Identity.loadorcreate()
     with ThreadPoolExecutor() as e, ExitStack() as stack:
-        print(json.dumps(dict(zip(plugs, invokeall([e.submit(config.retry.scheme, partial(config.command, stack.enter_context(P110.loadorcreate(conf, identity)))).result for name, conf in plugs.items()])))))
+        print(json.dumps(dict(zip(plugs, invokeall([e.submit(config.retry.scheme, giveup, partial(config.command, stack.enter_context(P110.loadorcreate(conf, identity)))).result for name, conf in plugs.items()])))))
