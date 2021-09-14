@@ -31,8 +31,9 @@ from argparse import ArgumentParser
 from aridity.config import ConfigCtrl
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import ExitStack
+from datetime import datetime
 from diapyr.util import invokeall
-import json, logging
+import json, logging, pytz
 
 def _initlogging():
     logging.basicConfig(format = "%(asctime)s %(levelname)s %(message)s", level = logging.DEBUG)
@@ -43,7 +44,8 @@ class CLIP110(P110):
         return 'on' if self.ison() else 'off'
 
     def time(self):
-        return self.get_device_time()
+        d = self.get_device_time()
+        return pytz.utc.localize(datetime.utcfromtimestamp(d['timestamp'])).astimezone(pytz.timezone(d['region'])).strftime('%Y-%m-%d %H:%M:%S %Z')
 
     def power(self):
         return self.get_energy_usage()['current_power'] / 1000

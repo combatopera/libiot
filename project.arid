@@ -32,6 +32,7 @@ requires +=
     lagoon>=24
     pycryptodome>=3.9.8
     pkcs7>=0.1.2
+    pytz>=2021.1
     requests>=2.24.0
 years += 2021
 author = Andrzej Cichocki
