@@ -28,11 +28,42 @@
 
 from .util import b64str, Cipher, P110Exception, Persistent
 from base64 import b64decode
+from Crypto.Cipher import PKCS1_v1_5
+from Crypto.PublicKey import RSA
 from hashlib import sha1
 from requests import Session
-import logging
+from uuid import uuid4
+import logging, time
 
 log = logging.getLogger(__name__)
+
+class Identity(Persistent):
+
+    @classmethod
+    def loadorcreate(cls):
+        return super().loadorcreate('identity', [])
+
+    def __init__(self):
+        key = RSA.generate(1024)
+        self.privatekey = key.export_key()
+        self.publickey  = key.publickey().export_key().decode('ascii')
+        self.terminaluuid = str(uuid4())
+
+    def validate(self):
+        return True
+
+    def decrypt(self, data):
+        return PKCS1_v1_5.new(RSA.importKey(self.privatekey)).decrypt(data, None)
+
+    def payload(self, **kwargs):
+        return dict(
+            kwargs,
+            requestTimeMils = int(time.time() * 1000),
+            terminalUUID = self.terminaluuid,
+        )
+
+    def handshakepayload(self):
+        return self.payload(key = self.publickey)
 
 class P110(Persistent):
 
