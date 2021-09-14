@@ -29,6 +29,7 @@
 requires +=
     aridity>=52
     diapyr>=23
+    keyring>=21.3.0
     lagoon>=24
     pycryptodome>=3.9.8
     pkcs7>=0.1.2
