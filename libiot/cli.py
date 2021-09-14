@@ -30,7 +30,7 @@ from .p110 import Identity, P110
 from .util import getpassword
 from argparse import ArgumentParser
 from aridity.config import ConfigCtrl
-from bluepy.btle import DefaultDelegate, Peripheral
+from bluepy.btle import BTLEDisconnectError, DefaultDelegate, Peripheral
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import ExitStack
 from datetime import datetime
@@ -104,12 +104,22 @@ class Delegate(DefaultDelegate):
         )
 
 def main_mijia():
+    def conf(*args):
+        log.info("Write: %s", args)
+        p.writeCharacteristic(*args, withResponse = True)
     _initlogging()
     d = Delegate()
-    p = Peripheral('A4:C1:38:01:E0:46').withDelegate(d)
-    conf = partial(p.writeCharacteristic, withResponse = True)
-    conf(0x38, b'\x01\x00')
-    conf(0x46, b'\xf4\x01\x00')
-    while not p.waitForNotifications(1):
-        pass
-    print(d.result)
+    address = 'A4:C1:38:01:E0:46'
+    while True:
+        try:
+            log.info("Connect: %s", address)
+            p = Peripheral(address).withDelegate(d)
+            conf(0x38, b'\x01\x00')
+            conf(0x46, b'\xf4\x01\x00')
+            log.info('Await notification.')
+            while not p.waitForNotifications(1):
+                pass
+            print(d.result)
+            break
+        except BTLEDisconnectError:
+            log.exception('Fail:')
