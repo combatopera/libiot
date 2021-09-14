@@ -30,6 +30,7 @@ from .p110 import Identity, P110
 from .util import getpassword
 from argparse import ArgumentParser
 from aridity.config import ConfigCtrl
+from bluepy.btle import DefaultDelegate, Peripheral
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import ExitStack
 from datetime import datetime
@@ -90,3 +91,23 @@ def main_p110():
     with ThreadPoolExecutor() as e, ExitStack() as stack, getpassword('p110', config.username, config.force) as password:
         config.cli.password = password
         print(json.dumps(dict(zip(plugs, invokeall([e.submit(config.retry.scheme, giveup, partial(config.command, stack.enter_context(P110.loadorcreate(conf, identity)))).result for name, conf in plugs.items()])))))
+
+class MyDelegate(DefaultDelegate):
+
+    def handleNotification(self, cHandle, data):
+        temp = int.from_bytes(data[0:2], byteorder = 'little', signed = True) / 100
+        humidity = int.from_bytes(data[2:3], byteorder = 'little')
+        voltage = int.from_bytes(data[3:5], byteorder = 'little') / 1000
+        batteryLevel = min(int(round((voltage - 2.1), 2) * 100), 100)
+        print("Temperature: " + str(temp))
+        print("Humidity: " + str(humidity))
+        print("Battery voltage:",voltage,"V")
+        print("Battery level:",batteryLevel)
+
+def main_mijia():
+    _initlogging()
+    p = Peripheral('A4:C1:38:01:E0:46', iface = 0)
+    p.writeCharacteristic(0x38, b'\x01\x00', True)
+    p.writeCharacteristic(0x46, b'\xf4\x01\x00', True)
+    p.withDelegate(MyDelegate())
+    p.waitForNotifications(10000)
