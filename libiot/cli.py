@@ -45,8 +45,8 @@ class CLIP110(P110):
     def time(self):
         return self.get_device_time()
 
-    def usage(self):
-        return self.get_energy_usage()
+    def power(self):
+        return self.get_energy_usage()['current_power'] / 1000
 
 def main_p110():
     _initlogging()
