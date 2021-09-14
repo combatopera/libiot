@@ -29,7 +29,10 @@
 from .p110 import Identity, P110
 from argparse import ArgumentParser
 from aridity.config import ConfigCtrl
-import logging
+from concurrent.futures import ThreadPoolExecutor
+from contextlib import ExitStack
+from diapyr.util import invokeall
+import json, logging
 
 def _initlogging():
     logging.basicConfig(format = "%(asctime)s %(levelname)s %(message)s", level = logging.DEBUG)
@@ -40,7 +43,7 @@ def main_p110():
     parser = ArgumentParser()
     parser.add_argument('command')
     parser.parse_args(namespace = config.cli)
+    plugs = dict(-config.plug)
     identity = Identity.loadorcreate()
-    for name, conf in -config.plug:
-        with P110.loadorcreate(conf, identity) as p110:
-            print(config.command(p110))
+    with ThreadPoolExecutor() as e, ExitStack() as stack:
+        print(json.dumps(dict(zip(plugs, invokeall([e.submit(config.command, stack.enter_context(P110.loadorcreate(conf, identity))).result for name, conf in plugs.items()])))))
