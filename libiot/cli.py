@@ -28,8 +28,13 @@
 
 from .p110 import Identity, P110
 from aridity.config import ConfigCtrl
+import logging
+
+def _initlogging():
+    logging.basicConfig(format = "%(asctime)s %(levelname)s %(message)s", level = logging.DEBUG)
 
 def main_p110():
+    _initlogging()
     config = ConfigCtrl().loadappconfig(main_p110, 'p110.arid')
     identity = Identity.loadorcreate()
     for name, conf in -config.plug:

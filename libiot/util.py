@@ -41,22 +41,22 @@ class Persistent:
     cacheroot = Path.home() / '.cache' / 'libiot'
 
     @classmethod
-    def loadorcreate(cls, name, args, *context):
+    def loadorcreate(cls, relpath, args, *context):
         try:
-            with (cls.cacheroot / name).open('rb') as f:
-                log.debug("Load cached: %s", name)
+            with (cls.cacheroot / relpath).open('rb') as f:
+                log.debug("Load cached: %s", relpath)
                 obj = pickle.load(f)
                 if obj.validate(*context):
                     return obj
         except FileNotFoundError:
             pass
-        log.debug("Generate: %s", name)
+        log.debug("Generate: %s", relpath)
         obj = cls(*args)
-        obj.persist(name)
+        obj.persist(relpath)
         return obj
 
-    def persist(self, name):
-        with atomic(self.cacheroot / name) as p, p.open('wb') as f:
+    def persist(self, relpath):
+        with atomic(self.cacheroot / relpath) as p, p.open('wb') as f:
             pickle.dump(self, f)
 
     def validate(self, *context):

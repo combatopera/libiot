@@ -29,3 +29,4 @@
 plug * host = $(void)
 username = $(void)
 password = $(void)
+timeout = 5

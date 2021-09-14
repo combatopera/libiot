@@ -31,17 +31,19 @@ from base64 import b64decode
 from Crypto.Cipher import PKCS1_v1_5
 from Crypto.PublicKey import RSA
 from hashlib import sha1
+from pathlib import Path
 from requests import Session
 from uuid import uuid4
 import logging, time
 
 log = logging.getLogger(__name__)
+cachedir = Path('p110')
 
 class Identity(Persistent):
 
     @classmethod
     def loadorcreate(cls):
-        return super().loadorcreate('identity', [])
+        return super().loadorcreate(cachedir / 'identity', [])
 
     def __init__(self):
         key = RSA.generate(1024)
@@ -71,7 +73,7 @@ class P110(Persistent):
 
     @classmethod
     def loadorcreate(cls, config, identity):
-        return super().loadorcreate(config.host, [config, identity], identity)
+        return super().loadorcreate(cachedir / config.host, [config, identity], identity)
 
     def __init__(self, config, identity):
         self.host = config.host
@@ -91,7 +93,7 @@ class P110(Persistent):
 
     def __exit__(self, *exc_info):
         if (None, None, None) == exc_info:
-            self.persist(self.host)
+            self.persist(cachedir / self.host)
 
     def _post(self, **kwargs):
         try:
