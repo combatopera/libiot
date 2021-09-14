@@ -105,8 +105,9 @@ class Delegate(DefaultDelegate):
 
 def main_mijia():
     _initlogging()
+    config = ConfigCtrl().loadappconfig(main_mijia, 'mijia.arid')
     d = Delegate()
-    address = 'A4:C1:38:01:E0:46'
+    address = config.address
     while True:
         try:
             log.info("Connect: %s", address)
