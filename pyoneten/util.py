@@ -38,7 +38,7 @@ import json, logging, pickle, time
 
 log = logging.getLogger(__name__)
 
-def loadorcreate(name, factory, *context):
+def loadorcreate(name, factory, args, *context):
     try:
         with (Persistent.cacheroot / name).open('rb') as f:
             log.debug("Load cached: %s", name)
@@ -48,7 +48,7 @@ def loadorcreate(name, factory, *context):
     except FileNotFoundError:
         pass
     log.debug("Generate: %s", name)
-    obj = factory()
+    obj = factory(*args)
     obj.persist(name)
     return obj
 
@@ -67,7 +67,7 @@ class Identity(Persistent):
 
     @classmethod
     def loadorcreate(cls):
-        return loadorcreate('identity', cls)
+        return loadorcreate('identity', cls, [])
 
     def __init__(self):
         key = RSA.generate(1024)

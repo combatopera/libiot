@@ -40,7 +40,7 @@ class P110(Persistent):
 
     @classmethod
     def loadorcreate(cls, config, identity):
-        return loadorcreate(config.host, lambda: cls(config, identity), identity)
+        return loadorcreate(config.host, cls, [config, identity], identity)
 
     def __init__(self, config, identity):
         self.host = config.host
