@@ -92,22 +92,20 @@ def main_p110():
         config.cli.password = password
         print(json.dumps(dict(zip(plugs, invokeall([e.submit(config.retry.scheme, giveup, partial(config.command, stack.enter_context(P110.loadorcreate(conf, identity)))).result for name, conf in plugs.items()])))))
 
-class MyDelegate(DefaultDelegate):
+class Delegate(DefaultDelegate):
 
     def handleNotification(self, cHandle, data):
-        temp = int.from_bytes(data[0:2], byteorder = 'little', signed = True) / 100
+        temp = int.from_bytes(data[:2], byteorder = 'little', signed = True) / 100
         humidity = int.from_bytes(data[2:3], byteorder = 'little')
-        voltage = int.from_bytes(data[3:5], byteorder = 'little') / 1000
-        batteryLevel = min(int(round((voltage - 2.1), 2) * 100), 100)
+        voltage = int.from_bytes(data[3:], byteorder = 'little') / 1000
         print("Temperature: " + str(temp))
         print("Humidity: " + str(humidity))
         print("Battery voltage:",voltage,"V")
-        print("Battery level:",batteryLevel)
 
 def main_mijia():
     _initlogging()
-    p = Peripheral('A4:C1:38:01:E0:46', iface = 0)
+    p = Peripheral('A4:C1:38:01:E0:46').withDelegate(Delegate())
     p.writeCharacteristic(0x38, b'\x01\x00', True)
     p.writeCharacteristic(0x46, b'\xf4\x01\x00', True)
-    p.withDelegate(MyDelegate())
-    p.waitForNotifications(10000)
+    while not p.waitForNotifications(1):
+        pass
