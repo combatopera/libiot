@@ -96,8 +96,9 @@ class Delegate(DefaultDelegate):
 
     readint = partial(int.from_bytes, byteorder = 'little')
 
-    def __init__(self, address):
-        self.address = address
+    def __init__(self, config):
+        self.address = config.address
+        self.path = config.path
 
     def handleNotification(self, cHandle, data):
         self.result = dict(
@@ -114,15 +115,19 @@ class Delegate(DefaultDelegate):
         log.info('Await notification.')
         while not p.waitForNotifications(1):
             pass
-        return self.result
+        result = self.result
+        for name in self.path:
+            result = result[name]
+        return result
 
 def main_mijia():
     _initlogging()
     config = ConfigCtrl().loadappconfig(main_mijia, 'mijia.arid')
     parser = ArgumentParser()
     parser.add_argument('--retry')
+    parser.add_argument('path', nargs = '*')
     parser.parse_args(namespace = config.cli)
     sensors = dict(-config.sensor)
     giveup = time.time() + config.retry.seconds
     with ThreadPoolExecutor() as e:
-        print(json.dumps(dict(zip(sensors, invokeall([e.submit(config.retry.scheme, giveup, Delegate(conf.address).read).result for name, conf in sensors.items()])))))
+        print(json.dumps(dict(zip(sensors, invokeall([e.submit(config.retry.scheme, giveup, Delegate(conf).read).result for name, conf in sensors.items()])))))
