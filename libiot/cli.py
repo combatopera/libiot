@@ -122,7 +122,7 @@ def main_mijia():
     parser = ArgumentParser()
     parser.add_argument('--retry')
     parser.parse_args(namespace = config.cli)
-    mijias = dict(-config.mijia)
+    sensors = dict(-config.sensor)
     giveup = time.time() + config.retry.seconds
     with ThreadPoolExecutor() as e:
-        print(json.dumps(dict(zip(mijias, invokeall([e.submit(config.retry.scheme, giveup, Delegate(conf.address).read).result for name, conf in mijias.items()])))))
+        print(json.dumps(dict(zip(sensors, invokeall([e.submit(config.retry.scheme, giveup, Delegate(conf.address).read).result for name, conf in sensors.items()])))))
