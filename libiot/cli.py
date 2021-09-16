@@ -40,7 +40,7 @@ from requests.exceptions import ConnectionError, ReadTimeout
 import json, logging, pytz, time
 
 log = logging.getLogger(__name__)
-timeoutexceptions = ConnectionError, ReadTimeout
+timeoutexceptions = BTLEDisconnectError, ConnectionError, ReadTimeout
 
 def _initlogging():
     logging.basicConfig(format = "%(asctime)s %(levelname)s %(message)s", level = logging.DEBUG)
@@ -96,6 +96,9 @@ class Delegate(DefaultDelegate):
 
     readint = partial(int.from_bytes, byteorder = 'little')
 
+    def __init__(self, address):
+        self.address = address
+
     def handleNotification(self, cHandle, data):
         self.result = dict(
             temperature = self.readint(data[:2], signed = True) / 100,
@@ -103,21 +106,22 @@ class Delegate(DefaultDelegate):
             voltage = self.readint(data[3:]) / 1000,
         )
 
+    def read(self):
+        log.info("Connect: %s", self.address)
+        p = Peripheral(self.address).withDelegate(self)
+        p.writeCharacteristic(0x38, b'\x01\x00')
+        p.writeCharacteristic(0x46, b'\xf4\x01\x00')
+        log.info('Await notification.')
+        while not p.waitForNotifications(1):
+            pass
+        return self.result
+
 def main_mijia():
     _initlogging()
     config = ConfigCtrl().loadappconfig(main_mijia, 'mijia.arid')
-    d = Delegate()
+    parser = ArgumentParser()
+    parser.add_argument('--retry')
+    parser.parse_args(namespace = config.cli)
     address = config.address
-    while True:
-        try:
-            log.info("Connect: %s", address)
-            p = Peripheral(address).withDelegate(d)
-            p.writeCharacteristic(0x38, b'\x01\x00')
-            p.writeCharacteristic(0x46, b'\xf4\x01\x00')
-            log.info('Await notification.')
-            while not p.waitForNotifications(1):
-                pass
-            print(d.result)
-            break
-        except BTLEDisconnectError:
-            log.exception('Fail:')
+    giveup = time.time() + config.retry.seconds
+    print(config.retry.scheme(giveup, Delegate(address).read))
