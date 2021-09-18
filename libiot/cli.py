@@ -61,7 +61,7 @@ class Retry:
 
     def __init__(self, config):
         self.fail = config.fail
-        self.seconds = config.seconds
+        self.seconds = float(config.seconds)
 
     def __call__(self, f):
         giveup = time.time() + self.seconds
