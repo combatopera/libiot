@@ -32,10 +32,9 @@ password = $(cli password)
 timeout = 5
 cli
     command = $(void)
-    retry = fail
+    retry = 0
 command = $pyref(libiot.cli CLIP110.$(cli command))
 retry
-    scheme = $pyref(libiot.cli Retry.$(cli retry))
-    minutes = 90
-    seconds = $mul($(minutes) 60)
+    fail = $(cli fail)
+    seconds = $(cli retry)
 force = $(cli f)

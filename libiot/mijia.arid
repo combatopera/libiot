@@ -29,8 +29,8 @@
 sensor * address = $(void)
 cli
     path = $(void)
-    retry = fail
+    retry = 0
 retry
-    scheme = $pyref(libiot.cli Retry.$(cli retry))
-    seconds = 60
+    fail = $(cli fail)
+    seconds = $(cli retry)
 path = $(cli path)

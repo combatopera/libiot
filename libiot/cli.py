@@ -59,22 +59,20 @@ class CLIP110(P110):
 
 class Retry:
 
-    def fail(giveup, f):
-        return f()
+    def __init__(self, config):
+        self.fail = config.fail
+        self.seconds = config.seconds
 
-    def null(giveup, f):
-        try:
-            return f()
-        except timeoutexceptions:
-            log.exception('Timeout:')
-
-    def multi(giveup, f):
+    def __call__(self, f):
+        giveup = time.time() + self.seconds
         while True:
             try:
                 return f()
             except timeoutexceptions:
                 if time.time() >= giveup:
-                    raise
+                    if self.fail:
+                        raise
+                    break
                 log.exception('Timeout:')
 
 def main_p110():
@@ -82,15 +80,16 @@ def main_p110():
     config = ConfigCtrl().loadappconfig(main_p110, 'p110.arid')
     parser = ArgumentParser()
     parser.add_argument('-f', action = 'store_true')
+    parser.add_argument('--fail', action = 'store_true')
     parser.add_argument('--retry')
     parser.add_argument('command')
     parser.parse_args(namespace = config.cli)
     plugs = dict(-config.plug)
-    giveup = time.time() + config.retry.seconds
+    retry = Retry(config.retry)
     identity = Identity.loadorcreate()
     with ThreadPoolExecutor() as e, ExitStack() as stack, getpassword('p110', config.username, config.force) as password:
         config.cli.password = password
-        print(json.dumps(dict(zip(plugs, invokeall([e.submit(config.retry.scheme, giveup, partial(config.command, stack.enter_context(P110.loadorcreate(conf, identity)))).result for name, conf in plugs.items()])))))
+        print(json.dumps(dict(zip(plugs, invokeall([e.submit(retry, partial(config.command, stack.enter_context(P110.loadorcreate(conf, identity)))).result for name, conf in plugs.items()])))))
 
 class Delegate(DefaultDelegate):
 
@@ -124,10 +123,11 @@ def main_mijia():
     _initlogging()
     config = ConfigCtrl().loadappconfig(main_mijia, 'mijia.arid')
     parser = ArgumentParser()
+    parser.add_argument('--fail', action = 'store_true')
     parser.add_argument('--retry')
     parser.add_argument('path', nargs = '*')
     parser.parse_args(namespace = config.cli)
     sensors = dict(-config.sensor)
-    giveup = time.time() + config.retry.seconds
+    retry = Retry(config.retry)
     with ThreadPoolExecutor() as e:
-        print(json.dumps(dict(zip(sensors, invokeall([e.submit(config.retry.scheme, giveup, Delegate(conf).read).result for name, conf in sensors.items()])))))
+        print(json.dumps(dict(zip(sensors, invokeall([e.submit(retry, Delegate(conf).read).result for name, conf in sensors.items()])))))
