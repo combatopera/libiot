@@ -27,6 +27,7 @@
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 from base64 import b64decode, b64encode
+from bluepy.btle import BTLEDisconnectError
 from contextlib import contextmanager
 from Crypto.Cipher import AES
 from diapyr.util import singleton
@@ -34,7 +35,8 @@ from getpass import getpass
 from lagoon.util import atomic
 from pathlib import Path
 from pkcs7 import PKCS7Encoder
-import json, logging, os, pickle
+from requests.exceptions import ConnectionError, ReadTimeout
+import json, logging, os, pickle, time
 
 log = logging.getLogger(__name__)
 
@@ -128,3 +130,23 @@ def getpassword(service, username, force):
         set_password(service, username, password)
     else:
         yield password
+
+class Retry:
+
+    timeoutexceptions = BTLEDisconnectError, ConnectionError, ReadTimeout
+
+    def __init__(self, config):
+        self.fail = config.fail
+        self.seconds = float(config.seconds)
+
+    def __call__(self, f):
+        giveup = time.time() + self.seconds
+        while True:
+            try:
+                return f()
+            except self.timeoutexceptions:
+                if time.time() >= giveup:
+                    if self.fail:
+                        raise
+                    break
+                log.exception('Timeout:')

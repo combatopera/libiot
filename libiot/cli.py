@@ -28,20 +28,17 @@
 
 from .mijia import Delegate
 from .p110 import Identity, P110
-from .util import getpassword
+from .util import getpassword, Retry
 from argparse import ArgumentParser
 from aridity.config import ConfigCtrl
-from bluepy.btle import BTLEDisconnectError
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import ExitStack
 from datetime import datetime
 from diapyr.util import invokeall
 from functools import partial
-from requests.exceptions import ConnectionError, ReadTimeout
-import json, logging, pytz, time
+import json, logging, pytz
 
 log = logging.getLogger(__name__)
-timeoutexceptions = BTLEDisconnectError, ConnectionError, ReadTimeout
 
 def _initlogging():
     logging.basicConfig(format = "%(asctime)s %(levelname)s %(message)s", level = logging.DEBUG)
@@ -57,24 +54,6 @@ class CLIP110(P110):
 
     def power(self):
         return self.get_energy_usage()['current_power'] / 1000
-
-class Retry:
-
-    def __init__(self, config):
-        self.fail = config.fail
-        self.seconds = float(config.seconds)
-
-    def __call__(self, f):
-        giveup = time.time() + self.seconds
-        while True:
-            try:
-                return f()
-            except timeoutexceptions:
-                if time.time() >= giveup:
-                    if self.fail:
-                        raise
-                    break
-                log.exception('Timeout:')
 
 def main_p110():
     _initlogging()
