@@ -26,11 +26,12 @@
 #
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
+from .mijia import Delegate
 from .p110 import Identity, P110
 from .util import getpassword
 from argparse import ArgumentParser
 from aridity.config import ConfigCtrl
-from bluepy.btle import BTLEDisconnectError, DefaultDelegate, Peripheral
+from bluepy.btle import BTLEDisconnectError
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import ExitStack
 from datetime import datetime
@@ -90,34 +91,6 @@ def main_p110():
     with ThreadPoolExecutor() as e, ExitStack() as stack, getpassword('p110', config.username, config.force) as password:
         config.cli.password = password
         print(json.dumps(dict(zip(plugs, invokeall([e.submit(retry, partial(config.command, stack.enter_context(P110.loadorcreate(conf, identity)))).result for name, conf in plugs.items()])))))
-
-class Delegate(DefaultDelegate):
-
-    readint = partial(int.from_bytes, byteorder = 'little')
-
-    def __init__(self, config):
-        self.address = config.address
-        self.path = config.path
-
-    def handleNotification(self, cHandle, data):
-        self.result = dict(
-            temperature = self.readint(data[:2], signed = True) / 100,
-            humidity = self.readint(data[2:3]),
-            voltage = self.readint(data[3:]) / 1000,
-        )
-
-    def read(self):
-        log.info("Connect: %s", self.address)
-        p = Peripheral(self.address).withDelegate(self)
-        p.writeCharacteristic(0x38, b'\x01\x00')
-        p.writeCharacteristic(0x46, b'\xf4\x01\x00')
-        log.info('Await notification.')
-        while not p.waitForNotifications(1):
-            pass
-        result = self.result
-        for name in self.path:
-            result = result[name]
-        return result
 
 def main_mijia():
     _initlogging()
