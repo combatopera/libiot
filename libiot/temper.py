@@ -26,11 +26,21 @@
 #
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
+import os, select, struct
+
 class Temper:
 
-    @classmethod
-    def discover(cls):
-        yield cls()
+    def __init__(self, path):
+        self.path = path
 
     def read(self):
-        return 100
+        def g():
+            fd = os.open(self.path, os.O_RDWR)
+            os.write(fd, struct.pack('8B', 0x01, 0x80, 0x33, 0x01, 0, 0, 0, 0))
+            while True:
+                r, _, _ = select.select([fd], [], [], .1)
+                if fd not in r:
+                    break
+                yield os.read(fd, 8)
+            os.close(fd)
+        return struct.unpack_from('>h', b''.join(g()), 2)[0] / 100

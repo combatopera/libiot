@@ -87,5 +87,4 @@ def main_mijia():
 
 def main_temper():
     _initlogging()
-    for t in Temper.discover():
-        print(t.read())
+    print(Temper('/dev/hidraw1').read())
