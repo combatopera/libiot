@@ -121,7 +121,7 @@ class Cipher:
 
 @contextmanager
 def getpassword(service, username, force):
-    os.environ['DBUS_SESSION_BUS_ADDRESS'] = f"unix:path=/run/user/{os.geteuid()}/bus"
+    os.environ['DBUS_SESSION_BUS_ADDRESS'] = f"unix:path=/run/user/{os.geteuid()}/bus" # TODO: CLI param for this.
     from keyring import get_password, set_password
     password = None if force else get_password(service, username)
     if password is None:
