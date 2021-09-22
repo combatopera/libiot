@@ -28,6 +28,7 @@
 
 from .mijia import Delegate
 from .p110 import Identity, P110
+from .temper import Temper
 from .util import getpassword, Retry
 from argparse import ArgumentParser
 from aridity.config import ConfigCtrl
@@ -83,3 +84,8 @@ def main_mijia():
     retry = Retry(config.retry)
     with ThreadPoolExecutor() as e:
         print(json.dumps(dict(zip(sensors, invokeall([e.submit(retry, Delegate(conf).read).result for name, conf in sensors.items()])))))
+
+def main_temper():
+    _initlogging()
+    for t in Temper.discover():
+        print(t.read())
