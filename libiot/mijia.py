@@ -32,6 +32,12 @@ import logging, math
 
 log = logging.getLogger(__name__)
 
+def carnotcycle(t, rh):
+    return 6.112 * math.e ** (17.67 * t / (t + 243.5)) * rh * 2.1674 / (273.15 + t)
+
+def onlineconversion(t, rh):
+    return ((0.000002 * t ** 4) + (0.0002 * t ** 3) + (0.0095 * t ** 2) + (0.337 * t) + 4.9034) * rh / 100
+
 class Delegate(DefaultDelegate):
 
     readint = partial(int.from_bytes, byteorder = 'little')
@@ -47,10 +53,7 @@ class Delegate(DefaultDelegate):
             temperature = t,
             humidity = rh,
             voltage = self.readint(data[3:]) / 1000,
-            absolute = dict(
-                carnotcycle = 6.112 * math.e ** (17.67 * t / (t + 243.5)) * rh * 2.1674 / (273.15 + t),
-                onlineconversion = ((0.000002 * t ** 4) + (0.0002 * t ** 3) + (0.0095 * t ** 2) + (0.337 * t) + 4.9034) * rh / 100,
-            ),
+            absolute = {f.__name__: f(t, rh) for f in [carnotcycle, onlineconversion]},
         )
 
     def read(self):
