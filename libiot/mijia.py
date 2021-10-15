@@ -28,7 +28,7 @@
 
 from bluepy.btle import DefaultDelegate, Peripheral
 from functools import partial
-import logging
+import logging, math
 
 log = logging.getLogger(__name__)
 
@@ -41,10 +41,13 @@ class Delegate(DefaultDelegate):
         self.path = config.path
 
     def handleNotification(self, cHandle, data):
+        t = self.readint(data[:2], signed = True) / 100
+        rh = self.readint(data[2:3])
         self.result = dict(
-            temperature = self.readint(data[:2], signed = True) / 100,
-            humidity = self.readint(data[2:3]),
+            temperature = t,
+            humidity = rh,
             voltage = self.readint(data[3:]) / 1000,
+            absolute = 6.112 * math.e ** (17.67 * t / (t + 243.5)) * rh * 2.1674 / (273.15 + t),
         )
 
     def read(self):
