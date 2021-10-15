@@ -47,7 +47,9 @@ class Delegate(DefaultDelegate):
             temperature = t,
             humidity = rh,
             voltage = self.readint(data[3:]) / 1000,
-            absolute = 6.112 * math.e ** (17.67 * t / (t + 243.5)) * rh * 2.1674 / (273.15 + t),
+            absolute = dict(
+                carnotcycle = 6.112 * math.e ** (17.67 * t / (t + 243.5)) * rh * 2.1674 / (273.15 + t),
+            }
         )
 
     def read(self):
