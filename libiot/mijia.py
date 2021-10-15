@@ -49,7 +49,8 @@ class Delegate(DefaultDelegate):
             voltage = self.readint(data[3:]) / 1000,
             absolute = dict(
                 carnotcycle = 6.112 * math.e ** (17.67 * t / (t + 243.5)) * rh * 2.1674 / (273.15 + t),
-            }
+                onlineconversion = ((0.000002 * t ** 4) + (0.0002 * t ** 3) + (0.0095 * t ** 2) + (0.337 * t) + 4.9034) * rh / 100,
+            ),
         )
 
     def read(self):
