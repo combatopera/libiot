@@ -76,11 +76,12 @@ def main_mijia():
     _initlogging()
     config = ConfigCtrl().loadappconfig(main_mijia, 'mijia.arid')
     parser = ArgumentParser()
+    parser.add_argument('--exclude', action = 'append', default = [])
     parser.add_argument('--fail', action = 'store_true')
     parser.add_argument('--retry')
     parser.add_argument('path', nargs = '*')
     parser.parse_args(namespace = config.cli)
-    sensors = dict(-config.sensor)
+    sensors = {k: v for k, v in -config.sensor if k not in config.cli.exclude}
     retry = Retry(config.retry)
     with ThreadPoolExecutor() as e:
         print(json.dumps(dict(zip(sensors, invokeall([e.submit(retry, Delegate(conf).read).result for name, conf in sensors.items()])))))
