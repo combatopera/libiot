@@ -53,7 +53,6 @@ class Delegate(DefaultDelegate):
             temperature = t,
             humidity = rh,
             voltage = self.readint(data[3:]) / 1000,
-            absolute = {f.__name__: f(t, rh) for f in [carnotcycle, onlineconversion]},
         )
 
     def read(self):
