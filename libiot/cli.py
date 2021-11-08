@@ -81,10 +81,10 @@ def main_mijia():
     parser.add_argument('--retry')
     parser.add_argument('path', nargs = '*')
     parser.parse_args(namespace = config.cli)
-    sensors = {k: v for k, v in -config.sensor if k not in config.cli.exclude}
+    sensors = dict(-config.sensor)
     retry = Retry(config.retry)
     with ThreadPoolExecutor() as e:
-        print(json.dumps(dict(zip(sensors, invokeall([e.submit(retry, Delegate(conf).read).result for name, conf in sensors.items()])))))
+        print(json.dumps(dict(zip(sensors, invokeall([e.submit(retry, (lambda: None) if name in config.cli.exclude else Delegate(conf).read).result for name, conf in sensors.items()])))))
 
 def main_temper():
     _initlogging()
