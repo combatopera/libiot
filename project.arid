@@ -44,3 +44,4 @@ pypi participant = false
 licenses += MIT
 MIT path = LICENSE.txt
 pyversions += 3
+buildbot enabled = true
