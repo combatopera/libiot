@@ -155,6 +155,6 @@ class P110(Persistent):
 
 def _delay():
     from random import random
-    sleeptime = random() * 60 * 15
+    sleeptime = random() * 60 * 10
     log.debug("Sleep: %s", sleeptime)
     time.sleep(sleeptime)
