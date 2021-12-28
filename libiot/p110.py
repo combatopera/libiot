@@ -143,18 +143,10 @@ class P110(Persistent):
         return self.get_device_info()['device_on']
 
     def on(self):
-        _delay()
         self.set_device_info(device_on = True)
 
     def off(self):
-        _delay()
         self.set_device_info(device_on = False)
 
     def nickname(self):
         return b64decode(self.get_device_info()['nickname']).decode(self.charset)
-
-def _delay():
-    from random import random
-    sleeptime = random() * 60 * 10
-    log.debug("Sleep: %s", sleeptime)
-    time.sleep(sleeptime)
