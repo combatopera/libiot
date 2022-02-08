@@ -68,9 +68,10 @@ def main_p110():
     plugs = dict(-config.plug)
     retry = Retry(config.retry)
     identity = Identity.loadorcreate()
+    exclude = ['Tyrell'] if 'off' == config.cli.command else []
     with ThreadPoolExecutor() as e, ExitStack() as stack, getpassword('p110', config.username, config.force) as password:
         config.cli.password = password
-        print(json.dumps(dict(zip(plugs, invokeall([e.submit(retry, partial(config.command, stack.enter_context(P110.loadorcreate(conf, identity)))).result for name, conf in plugs.items() if 'Tyrell' != name])))))
+        print(json.dumps(dict(zip(plugs, invokeall([e.submit(retry, partial(config.command, stack.enter_context(P110.loadorcreate(conf, identity)))).result for name, conf in plugs.items() if name not in exclude])))))
 
 def main_mijia():
     _initlogging()
