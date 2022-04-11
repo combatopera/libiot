@@ -74,7 +74,7 @@ def main_p110():
         config.cli.password = password
         def entryfuture(name, conf):
             p110 = stack.enter_context(P110.loadorcreate(conf, identity))
-            return partial(invokeall, [partial(lambda x: x, name), e.submit(retry, lambda: command(p110)).result])
+            return partial(invokeall, [lambda: name, e.submit(retry, lambda: command(p110)).result])
         print(json.dumps(dict(invokeall([entryfuture(name, conf) for name, conf in plugs.items() if name not in exclude]))))
 
 def main_mijia():
