@@ -32,6 +32,7 @@ cli
     retry = 0
 command = $pyref(libiot.cli CLIP110.$(cli command))
 force = $(cli f)
+keyring_cron = $(cli cron)
 keyring_force = $(force)
 password = $keyring($(appname) $(username))
 plug * host = $(void)

@@ -59,6 +59,7 @@ def main_p110():
     _initlogging()
     config = ConfigCtrl().loadappconfig(main_p110, 'p110.arid')
     parser = ArgumentParser()
+    parser.add_argument('--cron', action = 'store_true')
     parser.add_argument('-f', action = 'store_true')
     parser.add_argument('--fail', action = 'store_true')
     parser.add_argument('--retry')
