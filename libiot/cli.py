@@ -74,8 +74,8 @@ def main_p110():
         def g():
             for name, conf in plugs.items():
                 if name not in exclude:
-                    yield e.submit(retry, partial(config.command, stack.enter_context(P110.loadorcreate(conf, identity)))).result
-        print(json.dumps(dict(zip(plugs, invokeall(list(g()))))))
+                    yield partial(invokeall, [partial(lambda x: x, name), e.submit(retry, partial(config.command, stack.enter_context(P110.loadorcreate(conf, identity)))).result])
+        print(json.dumps(dict(invokeall(list(g())))))
 
 def main_mijia():
     _initlogging()
