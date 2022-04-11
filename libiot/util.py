@@ -28,15 +28,13 @@
 
 from base64 import b64decode, b64encode
 from bluepy.btle import BTLEDisconnectError
-from contextlib import contextmanager
 from Crypto.Cipher import AES
 from diapyr.util import singleton
-from getpass import getpass
 from lagoon.util import atomic
 from pathlib import Path
 from pkcs7 import PKCS7Encoder
 from requests.exceptions import ConnectionError, ReadTimeout
-import json, logging, os, pickle, time
+import json, logging, pickle, time
 
 log = logging.getLogger(__name__)
 
@@ -118,18 +116,6 @@ class Cipher:
 
     def decrypt(self, text):
         return json.loads(Pad.decode(self._aes().decrypt(b64decode(text))))
-
-@contextmanager
-def getpassword(service, username, force):
-    os.environ['DBUS_SESSION_BUS_ADDRESS'] = f"unix:path=/run/user/{os.geteuid()}/bus" # TODO: CLI param for this.
-    from keyring import get_password, set_password
-    password = None if force else get_password(service, username)
-    if password is None:
-        password = getpass()
-        yield password
-        set_password(service, username, password)
-    else:
-        yield password
 
 class Retry:
 

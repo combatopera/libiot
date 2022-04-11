@@ -29,7 +29,7 @@
 from .mijia import Delegate
 from .p110 import Identity, P110
 from .temper import Temper
-from .util import getpassword, Retry
+from .util import Retry
 from argparse import ArgumentParser
 from aridity.config import ConfigCtrl
 from concurrent.futures import ThreadPoolExecutor
@@ -69,9 +69,9 @@ def main_p110():
     command = config.command
     identity = Identity.loadorcreate()
     exclude = ['Tyrell'] if 'off' == config.cli.command else [] # FIXME: Retire this hack!
-    with ThreadPoolExecutor() as e, ExitStack() as stack, getpassword('p110', config.username, config.keyring_force) as password:
-        config.cli.password = password
+    with ThreadPoolExecutor() as e, ExitStack() as stack, config.password as password:
         def entryfuture(name, conf):
+            conf.password = password
             p110 = stack.enter_context(P110.loadorcreate(conf, identity))
             future = e.submit(retry, lambda: command(p110))
             return lambda: invokeall([lambda: name, future.result])
