@@ -71,11 +71,9 @@ def main_p110():
     exclude = ['Tyrell'] if 'off' == config.cli.command else [] # FIXME: Retire this hack!
     with ThreadPoolExecutor() as e, ExitStack() as stack, getpassword('p110', config.username, config.keyring_force) as password:
         config.cli.password = password
-        def g():
-            for name, conf in plugs.items():
-                if name not in exclude:
-                    yield partial(invokeall, [partial(lambda x: x, name), e.submit(retry, partial(config.command, stack.enter_context(P110.loadorcreate(conf, identity)))).result])
-        print(json.dumps(dict(invokeall(list(g())))))
+        def entryfuture(name, conf):
+            return partial(invokeall, [partial(lambda x: x, name), e.submit(retry, partial(config.command, stack.enter_context(P110.loadorcreate(conf, identity)))).result])
+        print(json.dumps(dict(invokeall([entryfuture(name, conf) for name, conf in plugs.items() if name not in exclude]))))
 
 def main_mijia():
     _initlogging()
