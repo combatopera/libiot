@@ -36,7 +36,6 @@ from concurrent.futures import ThreadPoolExecutor
 from contextlib import ExitStack
 from datetime import datetime
 from diapyr.util import invokeall
-from functools import partial
 import json, logging, pytz
 
 log = logging.getLogger(__name__)
@@ -74,7 +73,8 @@ def main_p110():
         config.cli.password = password
         def entryfuture(name, conf):
             p110 = stack.enter_context(P110.loadorcreate(conf, identity))
-            return partial(invokeall, [lambda: name, e.submit(retry, lambda: command(p110)).result])
+            future = e.submit(retry, lambda: command(p110))
+            return lambda: invokeall([lambda: name, future.result])
         print(json.dumps(dict(invokeall([entryfuture(name, conf) for name, conf in plugs.items() if name not in exclude]))))
 
 def main_mijia():
