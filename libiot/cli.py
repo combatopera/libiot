@@ -67,12 +67,14 @@ def main_p110():
     parser.parse_args(namespace = config.cli)
     plugs = dict(-config.plug)
     retry = Retry(config.retry)
+    command = config.command
     identity = Identity.loadorcreate()
     exclude = ['Tyrell'] if 'off' == config.cli.command else [] # FIXME: Retire this hack!
     with ThreadPoolExecutor() as e, ExitStack() as stack, getpassword('p110', config.username, config.keyring_force) as password:
         config.cli.password = password
         def entryfuture(name, conf):
-            return partial(invokeall, [partial(lambda x: x, name), e.submit(retry, partial(config.command, stack.enter_context(P110.loadorcreate(conf, identity)))).result])
+            p110 = stack.enter_context(P110.loadorcreate(conf, identity))
+            return partial(invokeall, [partial(lambda x: x, name), e.submit(retry, lambda: command(p110)).result])
         print(json.dumps(dict(invokeall([entryfuture(name, conf) for name, conf in plugs.items() if name not in exclude]))))
 
 def main_mijia():
