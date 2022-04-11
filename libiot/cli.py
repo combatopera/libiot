@@ -59,7 +59,7 @@ def main_p110():
     _initlogging()
     config = ConfigCtrl().loadappconfig(main_p110, 'p110.arid')
     parser = ArgumentParser()
-    parser.add_argument('-f', action = 'store_true') # FIXME: Does not seem to work.
+    parser.add_argument('-f', action = 'store_true')
     parser.add_argument('--fail', action = 'store_true')
     parser.add_argument('--retry')
     parser.add_argument('command')
@@ -67,12 +67,13 @@ def main_p110():
     plugs = dict(-config.plug)
     retry = Retry(config.retry)
     command = config.command
+    force = config.force
     identity = Identity.loadorcreate()
     exclude = ['Tyrell'] if 'off' == config.cli.command else [] # FIXME: Retire this hack!
     with ThreadPoolExecutor() as e, ExitStack() as stack, config.password as password:
         def entryfuture(name, conf):
             conf.password = password
-            p110 = stack.enter_context(P110.loadorcreate(conf, identity))
+            p110 = stack.enter_context((P110 if force else P110.loadorcreate)(conf, identity))
             future = e.submit(retry, lambda: command(p110))
             return lambda: invokeall([lambda: name, future.result])
         print(json.dumps(dict(invokeall([entryfuture(name, conf) for name, conf in plugs.items() if name not in exclude]))))
