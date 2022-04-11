@@ -27,6 +27,7 @@
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 from .util import b64str, Cipher, P110Exception, Persistent
+from aridity.util import null_exc_info
 from base64 import b64decode
 from Crypto.Cipher import PKCS1_v1_5
 from Crypto.PublicKey import RSA
@@ -92,7 +93,7 @@ class P110(Persistent):
         return self
 
     def __exit__(self, *exc_info):
-        if (None, None, None) == exc_info:
+        if null_exc_info == exc_info:
             self.persist(cachedir / self.host)
 
     def _post(self, **kwargs):
