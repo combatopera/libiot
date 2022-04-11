@@ -26,15 +26,15 @@
 :
 : THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-plug * host = $(void)
-username = $(void)
-password = $(cli password)
-timeout = 5
 cli
     command = $(void)
     retry = 0
 command = $pyref(libiot.cli CLIP110.$(cli command))
+force = $(cli f)
+password = $(cli password)
+plug * host = $(void)
 retry
     fail = $(cli fail)
     seconds = $(cli retry)
-force = $(cli f)
+timeout = 5
+username = $(void)
