@@ -30,7 +30,7 @@ cli
     command = $(void)
     retry = 0
 command = $pyref(libiot.cli CLIP110.$(cli command))
-force = $(cli f)
+keyring_force = $(cli f)
 password = $(cli password)
 plug * host = $(void)
 retry
