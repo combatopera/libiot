@@ -56,12 +56,11 @@ def main_p110():
     exclude = ['Tyrell'] if 'off' == command else [] # FIXME: Retire this hack!
     plugs = [(name, conf) for name, conf in -config.plug if name not in exclude]
     retry = Retry(config.retry)
-    force = config.force
     identity = Identity.loadorcreate()
     with ThreadPoolExecutor() as e, ExitStack() as stack, config.password as password:
         def entryfuture(name, conf):
             conf.password = password
-            p110 = stack.enter_context((P110 if force else P110.loadorcreate)(conf, identity)).Client(conf)
+            p110 = stack.enter_context(P110.loadorcreate(conf, identity)).Client(conf)
             future = e.submit(retry, getattr(p110, command))
             return lambda: invokeall([lambda: name, future.result])
         print(json.dumps(dict(invokeall([entryfuture(*item) for item in plugs]))))
