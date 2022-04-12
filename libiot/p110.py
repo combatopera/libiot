@@ -83,8 +83,11 @@ class P110(Persistent):
             password = b64str(config.password.encode(self.charset)),
         )
         self.timeout = config.timeout
-        self.session = Session()
+        self._reset()
         self.identity = identity
+
+    def _reset(self):
+        self.session = Session()
 
     def validate(self, contextidentity):
         return self.identity.terminaluuid == contextidentity.terminaluuid
@@ -134,7 +137,7 @@ class P110(Persistent):
                             delattr(self, name)
                         except AttributeError:
                             pass
-                    self.session = Session()
+                    self._reset()
         return method
 
     def _login(self):
