@@ -34,7 +34,7 @@ from argparse import ArgumentParser
 from aridity.config import ConfigCtrl
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import ExitStack
-from diapyr import DI
+from diapyr import DI, types
 from diapyr.util import invokeall
 import json, logging
 
@@ -42,6 +42,10 @@ log = logging.getLogger(__name__)
 
 def _initlogging():
     logging.basicConfig(format = "%(asctime)s %(levelname)s %(message)s", level = logging.DEBUG)
+
+@types(this = Identity)
+def identityfactory():
+    return Identity.loadorcreate()
 
 def main_p110():
     _initlogging()
@@ -56,13 +60,13 @@ def main_p110():
     command = config.command
     exclude = ['Tyrell'] if 'off' == command else [] # FIXME: Retire this hack!
     plugs = [(name, conf) for name, conf in -config.plug if name not in exclude]
-    identity = Identity.loadorcreate()
     with ThreadPoolExecutor() as e, ExitStack() as stack, DI() as di:
         di.add(config)
+        di.add(identityfactory)
         di.add(Retry)
         di.add(LoginParams)
         def entryfuture(name, conf):
-            p110 = stack.enter_context(P110.loadorcreate(conf, identity)).Client(conf, di(LoginParams))
+            p110 = stack.enter_context(P110.loadorcreate(conf, di(Identity))).Client(conf, di(LoginParams))
             future = e.submit(di(Retry), getattr(p110, command))
             return lambda: invokeall([lambda: name, future.result])
         print(json.dumps(dict(invokeall([entryfuture(*item) for item in plugs]))))
