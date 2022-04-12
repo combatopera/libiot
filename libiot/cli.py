@@ -34,9 +34,8 @@ from argparse import ArgumentParser
 from aridity.config import ConfigCtrl
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import ExitStack
-from datetime import datetime
 from diapyr.util import invokeall
-import json, logging, pytz
+import json, logging
 
 log = logging.getLogger(__name__)
 
