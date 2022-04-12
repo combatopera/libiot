@@ -121,6 +121,7 @@ class P110(Persistent):
     class Client:
 
         def __init__(self, config, loginparams):
+            self.resetparams = config.force
             self.timeout = config.timeout
             self.loginparams = loginparams
 
@@ -141,6 +142,12 @@ class P110(Persistent):
             if methodname.startswith('__') or methodname in {'cipher', 'reqparams'}:
                 raise AttributeError(methodname)
             def method(**methodparams):
+                if self.resetparams:
+                    self.resetparams = False
+                    try:
+                        delattr(self._enclosinginstance, 'reqparams')
+                    except AttributeError:
+                        pass
                 while True:
                     if not hasattr(self, 'cipher'):
                         self._handshake()
