@@ -32,6 +32,7 @@ from base64 import b64decode
 from Crypto.Cipher import PKCS1_v1_5
 from Crypto.PublicKey import RSA
 from datetime import datetime
+from diapyr.util import innerclass
 from hashlib import sha1
 from pathlib import Path
 from requests import Session
@@ -79,11 +80,6 @@ class P110(Persistent):
 
     def __init__(self, config, identity):
         self.host = config.host
-        self.loginparams = dict(
-            username = b64str(sha1(config.username.encode(self.charset)).hexdigest().encode('ascii')),
-            password = b64str(config.password.encode(self.charset)),
-        )
-        self.timeout = config.timeout
         self._reset()
         self.identity = identity
 
@@ -100,68 +96,78 @@ class P110(Persistent):
         if null_exc_info == exc_info:
             self.persist(cachedir / self.host)
 
-    def _post(self, **kwargs):
-        try:
-            d = dict(params = self.reqparams)
-        except AttributeError:
-            d = {}
-        return self.session.post(f"http://{self.host}/app", **d, json = kwargs, timeout = self.timeout)
+    @innerclass
+    class Client:
 
-    def _handshake(self):
-        self.cipher = Cipher.create(self.identity.decrypt(b64decode(P110Exception.check(self._post(
-            method = 'handshake',
-            params = self.identity.handshakepayload(),
-        ).json())['key'])))
+        def __init__(self, config):
+            self.loginparams = dict(
+                username = b64str(sha1(config.username.encode(self.charset)).hexdigest().encode('ascii')),
+                password = b64str(config.password.encode(self.charset)),
+            )
+            self.timeout = config.timeout
 
-    def __getattr__(self, methodname):
-        if methodname.startswith('__') or methodname in {'cipher', 'reqparams'}:
-            raise AttributeError(methodname)
-        def method(**methodparams):
-            while True:
-                if not hasattr(self, 'cipher'):
-                    self._handshake()
-                if not hasattr(self, 'reqparams') and 'login_device' != methodname:
-                    self._login()
-                try:
-                    return P110Exception.check(self.cipher.decrypt(P110Exception.check(self._post(
-                        method = 'securePassthrough',
-                        params = dict(request = self.cipher.encrypt(self.identity.payload(
-                            method = methodname,
-                            params = methodparams,
-                        ))),
-                    ).json())['response']))
-                except P110Exception as e:
-                    if 9999 != e.error_code:
-                        raise
-                    for name in 'reqparams', 'cipher':
-                        try:
-                            delattr(self, name)
-                        except AttributeError:
-                            pass
-                    self._reset()
-        return method
+        def _post(self, **kwargs):
+            try:
+                d = dict(params = self.reqparams)
+            except AttributeError:
+                d = {}
+            return self.session.post(f"http://{self.host}/app", **d, json = kwargs, timeout = self.timeout)
 
-    def _login(self):
-        self.reqparams = dict(token = self.login_device(**self.loginparams)['token'])
+        def _handshake(self):
+            self.cipher = Cipher.create(self.identity.decrypt(b64decode(P110Exception.check(self._post(
+                method = 'handshake',
+                params = self.identity.handshakepayload(),
+            ).json())['key'])))
 
-    def ison(self):
-        return self.get_device_info()['device_on']
+        def __getattr__(self, methodname):
+            if methodname.startswith('__') or methodname in {'cipher', 'reqparams'}:
+                raise AttributeError(methodname)
+            def method(**methodparams):
+                while True:
+                    if not hasattr(self, 'cipher'):
+                        self._handshake()
+                    if not hasattr(self, 'reqparams') and 'login_device' != methodname:
+                        self._login()
+                    try:
+                        return P110Exception.check(self.cipher.decrypt(P110Exception.check(self._post(
+                            method = 'securePassthrough',
+                            params = dict(request = self.cipher.encrypt(self.identity.payload(
+                                method = methodname,
+                                params = methodparams,
+                            ))),
+                        ).json())['response']))
+                    except P110Exception as e:
+                        if 9999 != e.error_code:
+                            raise
+                        for name in 'reqparams', 'cipher':
+                            try:
+                                delattr(self, name)
+                            except AttributeError:
+                                pass
+                        self._reset()
+            return method
 
-    def on(self):
-        self.set_device_info(device_on = True)
+        def _login(self):
+            self.reqparams = dict(token = self.login_device(**self.loginparams)['token'])
 
-    def off(self):
-        self.set_device_info(device_on = False)
+        def ison(self):
+            return self.get_device_info()['device_on']
 
-    def nickname(self):
-        return b64decode(self.get_device_info()['nickname']).decode(self.charset)
+        def on(self):
+            self.set_device_info(device_on = True)
 
-    def status(self):
-        return 'on' if self.ison() else 'off'
+        def off(self):
+            self.set_device_info(device_on = False)
 
-    def time(self):
-        d = self.get_device_time()
-        return pytz.utc.localize(datetime.utcfromtimestamp(d['timestamp'])).astimezone(pytz.timezone(d['region'])).strftime('%Y-%m-%d %H:%M:%S %Z')
+        def nickname(self):
+            return b64decode(self.get_device_info()['nickname']).decode(self.charset)
 
-    def power(self):
-        return self.get_energy_usage()['current_power'] / 1000
+        def status(self):
+            return 'on' if self.ison() else 'off'
+
+        def time(self):
+            d = self.get_device_time()
+            return pytz.utc.localize(datetime.utcfromtimestamp(d['timestamp'])).astimezone(pytz.timezone(d['region'])).strftime('%Y-%m-%d %H:%M:%S %Z')
+
+        def power(self):
+            return self.get_energy_usage()['current_power'] / 1000
