@@ -30,7 +30,7 @@ appname := $label()
 cli
     command = $(void)
     retry = 0
-command = $pyref(libiot.p110 P110.$(cli command))
+command = $(cli command)
 force = $(cli f)
 keyring_cron = $(cli cron)
 keyring_force = $(force)
