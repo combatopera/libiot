@@ -122,8 +122,8 @@ class Retry:
     timeoutexceptions = BTLEDisconnectError, ConnectionError, ReadTimeout
 
     def __init__(self, config):
-        self.fail = config.fail
-        self.seconds = float(config.seconds)
+        self.fail = config.retry.fail
+        self.seconds = float(config.retry.seconds)
 
     def __call__(self, f):
         giveup = time.time() + self.seconds
