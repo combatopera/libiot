@@ -84,6 +84,11 @@ class P110(Persistent):
         self.identity = identity
 
     def _reset(self):
+        for name in 'reqparams', 'cipher':
+            try:
+                delattr(self, name)
+            except AttributeError:
+                pass
         self.session = Session()
 
     def validate(self, contextidentity):
@@ -114,7 +119,7 @@ class P110(Persistent):
             return self.session.post(f"http://{self.host}/app", **d, json = kwargs, timeout = self.timeout)
 
         def _handshake(self):
-            self.cipher = Cipher.create(self.identity.decrypt(b64decode(P110Exception.check(self._post(
+            self._enclosinginstance.cipher = Cipher.create(self.identity.decrypt(b64decode(P110Exception.check(self._post(
                 method = 'handshake',
                 params = self.identity.handshakepayload(),
             ).json())['key'])))
@@ -139,16 +144,11 @@ class P110(Persistent):
                     except P110Exception as e:
                         if 9999 != e.error_code:
                             raise
-                        for name in 'reqparams', 'cipher':
-                            try:
-                                delattr(self, name)
-                            except AttributeError:
-                                pass
                         self._reset()
             return method
 
         def _login(self):
-            self.reqparams = dict(token = self.login_device(**self.loginparams)['token'])
+            self._enclosinginstance.reqparams = dict(token = self.login_device(**self.loginparams)['token'])
 
         def ison(self):
             return self.get_device_info()['device_on']
