@@ -154,3 +154,13 @@ class P110(Persistent):
 
     def nickname(self):
         return b64decode(self.get_device_info()['nickname']).decode(self.charset)
+
+    def status(self):
+        return 'on' if self.ison() else 'off'
+
+    def time(self):
+        d = self.get_device_time()
+        return pytz.utc.localize(datetime.utcfromtimestamp(d['timestamp'])).astimezone(pytz.timezone(d['region'])).strftime('%Y-%m-%d %H:%M:%S %Z')
+
+    def power(self):
+        return self.get_energy_usage()['current_power'] / 1000

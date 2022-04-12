@@ -43,18 +43,6 @@ log = logging.getLogger(__name__)
 def _initlogging():
     logging.basicConfig(format = "%(asctime)s %(levelname)s %(message)s", level = logging.DEBUG)
 
-class CLIP110(P110):
-
-    def status(self):
-        return 'on' if self.ison() else 'off'
-
-    def time(self):
-        d = self.get_device_time()
-        return pytz.utc.localize(datetime.utcfromtimestamp(d['timestamp'])).astimezone(pytz.timezone(d['region'])).strftime('%Y-%m-%d %H:%M:%S %Z')
-
-    def power(self):
-        return self.get_energy_usage()['current_power'] / 1000
-
 def main_p110():
     _initlogging()
     config = ConfigCtrl().loadappconfig(main_p110, 'p110.arid')
