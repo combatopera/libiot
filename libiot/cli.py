@@ -65,19 +65,19 @@ def main_p110():
     parser.add_argument('--retry')
     parser.add_argument('command')
     parser.parse_args(namespace = config.cli)
-    plugs = dict(-config.plug)
+    exclude = ['Tyrell'] if 'off' == config.cli.command else [] # FIXME: Retire this hack!
+    plugs = [(name, conf) for name, conf in -config.plug if name not in exclude]
     retry = Retry(config.retry)
     command = config.command
     force = config.force
     identity = Identity.loadorcreate()
-    exclude = ['Tyrell'] if 'off' == config.cli.command else [] # FIXME: Retire this hack!
     with ThreadPoolExecutor() as e, ExitStack() as stack, config.password as password:
         def entryfuture(name, conf):
             conf.password = password
             p110 = stack.enter_context((P110 if force else P110.loadorcreate)(conf, identity))
             future = e.submit(retry, lambda: command(p110))
             return lambda: invokeall([lambda: name, future.result])
-        print(json.dumps(dict(invokeall([entryfuture(name, conf) for name, conf in plugs.items() if name not in exclude]))))
+        print(json.dumps(dict(invokeall([entryfuture(*item) for item in plugs]))))
 
 def main_mijia():
     _initlogging()
