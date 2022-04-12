@@ -26,9 +26,11 @@
 #
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
+from aridity.config import Config
 from base64 import b64decode, b64encode
 from bluepy.btle import BTLEDisconnectError
 from Crypto.Cipher import AES
+from diapyr import types
 from diapyr.util import singleton
 from lagoon.util import atomic
 from pathlib import Path
@@ -121,6 +123,7 @@ class Retry:
 
     timeoutexceptions = BTLEDisconnectError, ConnectionError, ReadTimeout
 
+    @types(Config)
     def __init__(self, config):
         self.fail = config.retry.fail
         self.seconds = float(config.retry.seconds)
