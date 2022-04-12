@@ -27,13 +27,14 @@
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 from .mijia import Delegate
-from .p110 import Identity, P110
+from .p110 import Identity, LoginParams, P110
 from .temper import Temper
 from .util import Retry
 from argparse import ArgumentParser
 from aridity.config import ConfigCtrl
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import ExitStack
+from diapyr import DI
 from diapyr.util import invokeall
 import json, logging
 
@@ -57,10 +58,11 @@ def main_p110():
     plugs = [(name, conf) for name, conf in -config.plug if name not in exclude]
     retry = Retry(config.retry)
     identity = Identity.loadorcreate()
-    with ThreadPoolExecutor() as e, ExitStack() as stack, config.password as password:
+    with ThreadPoolExecutor() as e, ExitStack() as stack, DI() as di:
+        di.add(config)
+        di.add(LoginParams)
         def entryfuture(name, conf):
-            conf.password = password
-            p110 = stack.enter_context(P110.loadorcreate(conf, identity)).Client(conf)
+            p110 = stack.enter_context(P110.loadorcreate(conf, identity)).Client(conf, di(LoginParams))
             future = e.submit(retry, getattr(p110, command))
             return lambda: invokeall([lambda: name, future.result])
         print(json.dumps(dict(invokeall([entryfuture(*item) for item in plugs]))))

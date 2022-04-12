@@ -27,20 +27,23 @@
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 from .util import b64str, Cipher, P110Exception, Persistent
+from aridity.config import Config
 from aridity.util import null_exc_info
 from base64 import b64decode
 from Crypto.Cipher import PKCS1_v1_5
 from Crypto.PublicKey import RSA
 from datetime import datetime
+from diapyr import types
 from diapyr.util import innerclass
 from hashlib import sha1
 from pathlib import Path
 from requests import Session
 from uuid import uuid4
-import logging, time, pytz
+import logging, time, pytz, sys
 
 log = logging.getLogger(__name__)
 cachedir = Path('p110')
+charset = 'utf-8'
 
 class Identity(Persistent):
 
@@ -70,9 +73,22 @@ class Identity(Persistent):
     def handshakepayload(self):
         return self.payload(key = self.publickey)
 
-class P110(Persistent):
+class LoginParams:
 
-    charset = 'utf-8'
+    @types(Config)
+    def __init__(self, config):
+        self.password = config.password
+        self.params = dict(
+            username = b64str(sha1(config.username.encode(charset)).hexdigest().encode('ascii')),
+            password = b64str(self.password.encode(charset)),
+        )
+
+    def dispose(self):
+        if null_exc_info == sys.exc_info():
+            with self.password:
+                pass
+
+class P110(Persistent):
 
     @classmethod
     def loadorcreate(cls, config, identity):
@@ -104,12 +120,9 @@ class P110(Persistent):
     @innerclass
     class Client:
 
-        def __init__(self, config):
-            self.loginparams = dict(
-                username = b64str(sha1(config.username.encode(self.charset)).hexdigest().encode('ascii')),
-                password = b64str(config.password.encode(self.charset)),
-            )
+        def __init__(self, config, loginparams):
             self.timeout = config.timeout
+            self.loginparams = loginparams
 
         def _post(self, **kwargs):
             try:
@@ -148,7 +161,7 @@ class P110(Persistent):
             return method
 
         def _login(self):
-            self._enclosinginstance.reqparams = dict(token = self.login_device(**self.loginparams)['token'])
+            self._enclosinginstance.reqparams = dict(token = self.login_device(**self.loginparams.params)['token'])
 
         def ison(self):
             return self.get_device_info()['device_on']
@@ -160,7 +173,7 @@ class P110(Persistent):
             self.set_device_info(device_on = False)
 
         def nickname(self):
-            return b64decode(self.get_device_info()['nickname']).decode(self.charset)
+            return b64decode(self.get_device_info()['nickname']).decode(charset)
 
         def status(self):
             return 'on' if self.ison() else 'off'
