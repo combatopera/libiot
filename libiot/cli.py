@@ -70,8 +70,10 @@ def main_p110():
     parser.add_argument('-f', action = 'store_true')
     parser.add_argument('--fail', action = 'store_true')
     parser.add_argument('--retry')
+    parser.add_argument('-v', action = 'store_true')
     parser.add_argument('command')
     parser.parse_args(namespace = config.cli)
+    logging.getLogger().setLevel(logging.DEBUG if config.verbose else logging.INFO)
     exclude = ['Tyrell'] if 'off' == config.command else [] # FIXME: Retire this hack!
     plugs = [(name, conf) for name, conf in -config.plug if name not in exclude]
     with DI() as di, ExitStack() as stack, ThreadPoolExecutor() as e:

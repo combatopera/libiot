@@ -41,3 +41,4 @@ retry
     seconds = $(cli retry)
 timeout = 5
 username = $(void)
+verbose = $(cli v)
