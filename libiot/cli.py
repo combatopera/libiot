@@ -51,6 +51,16 @@ def identityfactory():
 def p110factory(config, identity, loginparams):
     return P110.loadorcreate(config, identity).Client(config, loginparams)
 
+class Command:
+
+    @types(Config, Retry, P110)
+    def __init__(self, config, retry, p110):
+        self.command = getattr(p110, config.command)
+        self.retry = retry
+
+    def __call__(self):
+        return self.retry(self.command)
+
 def main_p110():
     _initlogging()
     config = ConfigCtrl().loadappconfig(main_p110, 'p110.arid')
@@ -61,8 +71,7 @@ def main_p110():
     parser.add_argument('--retry')
     parser.add_argument('command')
     parser.parse_args(namespace = config.cli)
-    command = config.command
-    exclude = ['Tyrell'] if 'off' == command else [] # FIXME: Retire this hack!
+    exclude = ['Tyrell'] if 'off' == config.command else [] # FIXME: Retire this hack!
     plugs = [(name, conf) for name, conf in -config.plug if name not in exclude]
     with DI() as di, ExitStack() as stack, ThreadPoolExecutor() as e:
         di.add(config)
@@ -73,8 +82,9 @@ def main_p110():
             plugdi = stack.enter_context(DI(di))
             plugdi.add(conf)
             plugdi.add(p110factory)
-            client = plugdi(P110)
-            future = e.submit(di(Retry), getattr(client, command))
+            plugdi.add(Command)
+            command = plugdi(Command)
+            future = e.submit(command)
             return lambda: invokeall([lambda: name, future.result])
         print(json.dumps(dict(invokeall([entryfuture(*item) for item in plugs]))))
 
