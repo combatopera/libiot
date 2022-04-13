@@ -47,9 +47,9 @@ def _initlogging():
 def identityfactory():
     return Identity.loadorcreate()
 
-@types(Config, Identity, this = P110)
-def p110factory(config, identity):
-    return P110.loadorcreate(config, identity)
+@types(Config, Identity, LoginParams, this = P110)
+def p110factory(config, identity, loginparams):
+    return P110.loadorcreate(config, identity).Client(config, loginparams)
 
 def main_p110():
     _initlogging()
@@ -73,8 +73,7 @@ def main_p110():
             plugdi = stack.enter_context(DI(di))
             plugdi.add(conf)
             plugdi.add(p110factory)
-            p110 = plugdi(P110)
-            client = p110.Client(conf, di(LoginParams))
+            client = plugdi(P110)
             future = e.submit(di(Retry), getattr(client, command))
             return lambda: invokeall([lambda: name, future.result])
         print(json.dumps(dict(invokeall([entryfuture(*item) for item in plugs]))))
