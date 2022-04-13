@@ -74,8 +74,6 @@ def main_p110():
     parser.add_argument('command')
     parser.parse_args(namespace = config.cli)
     logging.getLogger().setLevel(logging.DEBUG if config.verbose else logging.INFO)
-    exclude = ['Tyrell'] if 'off' == config.command else [] # FIXME: Retire this hack!
-    plugs = [(name, conf) for name, conf in -config.plug if name not in exclude]
     with DI() as di, ExitStack() as stack, ThreadPoolExecutor() as e:
         di.add(config)
         di.add(identityfactory)
@@ -88,7 +86,7 @@ def main_p110():
             plugdi.add(p110factory)
             plugdi.add(Command)
             return e.submit(plugdi(Command))
-        print(json.dumps(dict(invokeall([entryfuture(*item).result for item in plugs]))))
+        print(json.dumps(dict(invokeall([entryfuture(*item).result for item in -config.plug]))))
 
 def main_mijia():
     _initlogging()
