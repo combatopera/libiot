@@ -53,13 +53,14 @@ def p110factory(config, identity, loginparams):
 
 class Command:
 
-    @types(Config, Retry, P110)
-    def __init__(self, config, retry, p110):
+    @types(Config, Retry, P110, str)
+    def __init__(self, config, retry, p110, name):
         self.command = getattr(p110, config.command)
         self.retry = retry
+        self.name = name
 
     def __call__(self):
-        return self.retry(self.command)
+        return self.name, self.retry(self.command)
 
 def main_p110():
     _initlogging()
@@ -80,13 +81,12 @@ def main_p110():
         di.add(LoginParams)
         def entryfuture(name, conf):
             plugdi = stack.enter_context(DI(di))
+            plugdi.add(name)
             plugdi.add(conf)
             plugdi.add(p110factory)
             plugdi.add(Command)
-            command = plugdi(Command)
-            future = e.submit(command)
-            return lambda: invokeall([lambda: name, future.result])
-        print(json.dumps(dict(invokeall([entryfuture(*item) for item in plugs]))))
+            return e.submit(plugdi(Command))
+        print(json.dumps(dict(invokeall([entryfuture(*item).result for item in plugs]))))
 
 def main_mijia():
     _initlogging()
