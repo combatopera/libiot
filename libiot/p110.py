@@ -116,11 +116,8 @@ class P110(Persistent):
     def validate(self, contextidentity):
         return self.identity.terminaluuid == contextidentity.terminaluuid
 
-    def __enter__(self):
-        return self
-
-    def __exit__(self, *exc_info):
-        if null_exc_info == exc_info:
+    def dispose(self):
+        if null_exc_info == sys.exc_info():
             self.persist(cachedir / self.host)
 
     @innerclass

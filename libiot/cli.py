@@ -31,7 +31,7 @@ from .p110 import Identity, LoginParams, P110
 from .temper import Temper
 from .util import Retry
 from argparse import ArgumentParser
-from aridity.config import ConfigCtrl
+from aridity.config import Config, ConfigCtrl
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import ExitStack
 from diapyr import DI, types
@@ -47,6 +47,10 @@ def _initlogging():
 def identityfactory():
     return Identity.loadorcreate()
 
+@types(Config, Identity, this = P110)
+def p110factory(config, identity):
+    return P110.loadorcreate(config, identity)
+
 def main_p110():
     _initlogging()
     config = ConfigCtrl().loadappconfig(main_p110, 'p110.arid')
@@ -60,14 +64,18 @@ def main_p110():
     command = config.command
     exclude = ['Tyrell'] if 'off' == command else [] # FIXME: Retire this hack!
     plugs = [(name, conf) for name, conf in -config.plug if name not in exclude]
-    with ThreadPoolExecutor() as e, ExitStack() as stack, DI() as di:
+    with DI() as di, ExitStack() as stack, ThreadPoolExecutor() as e:
         di.add(config)
         di.add(identityfactory)
         di.add(Retry)
         di.add(LoginParams)
         def entryfuture(name, conf):
-            p110 = stack.enter_context(P110.loadorcreate(conf, di(Identity))).Client(conf, di(LoginParams))
-            future = e.submit(di(Retry), getattr(p110, command))
+            plugdi = stack.enter_context(DI(di))
+            plugdi.add(conf)
+            plugdi.add(p110factory)
+            p110 = plugdi(P110)
+            client = p110.Client(conf, di(LoginParams))
+            future = e.submit(di(Retry), getattr(client, command))
             return lambda: invokeall([lambda: name, future.result])
         print(json.dumps(dict(invokeall([entryfuture(*item) for item in plugs]))))
 
