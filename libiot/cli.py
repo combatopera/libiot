@@ -26,6 +26,7 @@
 #
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
+from .govee import Govee
 from .mijia import Delegate
 from .p110 import Identity, LoginParams, P110
 from .temper import Temper
@@ -101,6 +102,13 @@ def main_mijia():
     retry = Retry(config)
     with ThreadPoolExecutor() as e:
         print(json.dumps(dict(zip(sensors, invokeall([e.submit(retry, (lambda: None) if name in config.cli.exclude else Delegate(conf).read).result for name, conf in sensors.items()])))))
+
+def main_govee():
+    _initlogging()
+    config = ConfigCtrl().loadappconfig(main_govee, 'govee.arid')
+    govees = {name: Govee(s) for name, s in -config.sensor}
+    for name, g in govees.items():
+        print(name, g.read())
 
 def main_temper():
     _initlogging()
