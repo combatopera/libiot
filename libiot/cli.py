@@ -107,8 +107,8 @@ def main_govee():
     _initlogging()
     config = ConfigCtrl().loadappconfig(main_govee, 'govee.arid')
     govees = {name: Govee(s) for name, s in -config.sensor}
-    for name, g in govees.items():
-        print(name, g.read())
+    with ThreadPoolExecutor() as e:
+        print(json.dumps(dict(zip(govees, invokeall([e.submit(g.read).result for g in govees.values()])))))
 
 def main_temper():
     _initlogging()
