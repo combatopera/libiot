@@ -42,6 +42,6 @@ name = libiot
 github participant = false
 pypi participant = false
 licenses += MIT
-MIT path = LICENSE.txt
+MIT path = LICENSE.pyp100
 pyversions += 3
 buildbot enabled = true
