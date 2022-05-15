@@ -39,7 +39,6 @@ requires +=
 years += 2021
 author = Andrzej Cichocki
 name = libiot
-github participant = false
 pypi participant = false
 licenses += MIT
 MIT path = LICENSE.pyp100
