@@ -35,6 +35,10 @@ log = logging.getLogger(__name__)
 def carnotcycle(t, rh):
     return 6.112 * math.e ** (17.67 * t / (t + 243.5)) * rh * 2.1674 / (273.15 + t)
 
+def carnotcycle2(t, rh):
+    p = 1 - 373.15 / (273.15 + t)
+    return 1013.25 * math.e ** (13.3185 * p - 1.9760 * p ** 2 - 0.6445 * p ** 3 - 0.1299 * p ** 4) * rh * 18.01528 / (100 * 0.083145 * (273.15 + t))
+
 def onlineconversion(t, rh):
     return ((0.000002 * t ** 4) + (0.0002 * t ** 3) + (0.0095 * t ** 2) + (0.337 * t) + 4.9034) * rh / 100
 
