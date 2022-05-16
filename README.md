@@ -1,38 +1,50 @@
-# Tapo P100
-Tapo P100 is a Python library for controlling the Tp-link Tapo P100 plugs, P105 plugs and L510E bulbs.
+# libiot
+Communicate with smart devices
 
-## Installation
+## Install
+These are generic installation instructions.
 
-Use the package manager [pip](https://pip.pypa.io/en/stable/) to install PyP100.
-
-```bash
-pip3 install PyP100
+### To use, permanently
+The quickest way to get started is to install the current release from PyPI:
+```
+pip3 install --user libiot
 ```
 
-## Usage
-
-```python
-from PyP100 import PyP100
-
-p100 = PyP100.P100("192.168.X.X", "email@gmail.com", "Password123") #Creating a P100 plug object
-
-p100.handshake() #Creates the cookies required for further methods 
-p100.login() #Sends credentials to the plug and creates AES Key and IV for further methods
-
-p100.turnOn() #Sends the turn on request
-p100.setBrightness(100) #Sends the set brightness request
-p100.turnOff() #Sends the turn off request
-p100.getDeviceInfo() #Returns dict with all the device info
-
-
+### To use, temporarily
+If you prefer to keep .local clean, install to a virtualenv:
+```
+python3 -m venv venvname
+venvname/bin/pip install libiot
+. venvname/bin/activate
 ```
 
-## Contributing
-Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
+### To develop
+First clone the repo using HTTP or SSH:
+```
+git clone https://github.com/combatopera/libiot.git
+git clone git@github.com:combatopera/libiot.git
+```
+Now use pyven's pipify to create a setup.py, which pip can then use to install the project editably:
+```
+python3 -m venv pyvenvenv
+pyvenvenv/bin/pip install pyven
+pyvenvenv/bin/pipify libiot
 
-## Contributers
-[K4CZP3R](https://github.com/K4CZP3R)\
-[Sonic74](https://github.com/sonic74)
+python3 -m venv venvname
+venvname/bin/pip install -e libiot
+. venvname/bin/activate
+```
 
-## License
-[MIT](https://choosealicense.com/licenses/mit/)
+## Commands
+
+### govee
+Get data from Govee H5075.
+
+### mijia
+Get data from all configured Mijia thermometer/hygrometer 2 sensors.
+
+### p110
+Run given command on all configured Tapo P100/P110 plugs.
+
+### temper
+Get data from TEMPer USB temperature sensor.
