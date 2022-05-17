@@ -28,9 +28,15 @@
 
 from diapyr.util import innerclass
 from bluepy.btle import BTLEDisconnectError, DefaultDelegate, Scanner
+from pathlib import Path
 import logging
 
 log = logging.getLogger(__name__)
+
+def _deviceindex():
+    prefix = 'hci'
+    p, = (p for p in Path('/sys/class/bluetooth').iterdir() if p.name.startswith(prefix))
+    return int(p.name[len(prefix):])
 
 class Govee:
 
@@ -58,8 +64,9 @@ class Govee:
 
     def read(self):
         d = self.Delegate()
-        s = Scanner().withDelegate(d)
-        log.info('Scanning.')
+        index = _deviceindex()
+        s = Scanner(index).withDelegate(d)
+        log.info("Scanning device: %s", index)
         try:
             s.scan(self.timeout, passive = True)
         except BTLEDisconnectError as e:
