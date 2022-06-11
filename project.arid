@@ -28,7 +28,7 @@
 
 requires +=
     aridity>=52
-    bluepy>=1.3.0
+    bluepy>=1.3.0 : TODO: Linux only.
     diapyr>=23
     keyring>=21.3.0
     lagoon>=24
