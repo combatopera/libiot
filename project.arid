@@ -44,3 +44,4 @@ licenses += MIT
 MIT path = LICENSE.pyp100
 pyversions += 3
 buildbot enabled = true
+executable = true
