@@ -27,7 +27,28 @@
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 'Get data from all configured Mijia thermometer/hygrometer 2 sensors.'
-from ..cli import main_mijia
+from . import initlogging
+from ..mijia import Delegate
+from ..util import Retry
+from argparse import ArgumentParser
+from aridity.config import ConfigCtrl
+from concurrent.futures import ThreadPoolExecutor
+from diapyr.util import invokeall
+import json
+
+def main():
+    initlogging()
+    config = ConfigCtrl().loadappconfig(main, 'mijia.arid')
+    parser = ArgumentParser()
+    parser.add_argument('--exclude', action = 'append', default = [])
+    parser.add_argument('--fail', action = 'store_true')
+    parser.add_argument('--retry')
+    parser.add_argument('path', nargs = '*')
+    parser.parse_args(namespace = config.cli)
+    sensors = dict(-config.sensor)
+    retry = Retry(config)
+    with ThreadPoolExecutor() as e:
+        print(json.dumps(dict(zip(sensors, invokeall([e.submit(retry, (lambda: None) if name in config.cli.exclude else Delegate(conf).read).result for name, conf in sensors.items()])))))
 
 if '__main__' == __name__:
-    main_mijia()
+    main()
