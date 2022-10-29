@@ -28,7 +28,6 @@
 
 from .p110 import Identity, LoginParams, P110
 from .scripts import initlogging
-from .temper import Temper
 from .util import Retry
 from argparse import ArgumentParser
 from aridity.config import Config, ConfigCtrl
@@ -84,7 +83,3 @@ def main_p110():
             plugdi.add(Command)
             return e.submit(plugdi(Command))
         print(json.dumps(dict(invokeall([entryfuture(*item).result for item in -config.plug]))))
-
-def main_temper():
-    initlogging()
-    print(Temper('/dev/hidraw1').read())
