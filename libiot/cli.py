@@ -26,7 +26,6 @@
 #
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-from .govee import Govee
 from .p110 import Identity, LoginParams, P110
 from .scripts import initlogging
 from .temper import Temper
@@ -85,13 +84,6 @@ def main_p110():
             plugdi.add(Command)
             return e.submit(plugdi(Command))
         print(json.dumps(dict(invokeall([entryfuture(*item).result for item in -config.plug]))))
-
-def main_govee():
-    initlogging()
-    config = ConfigCtrl().loadappconfig(main_govee, 'govee.arid')
-    govees = {name: Govee(s) for name, s in -config.sensor}
-    with ThreadPoolExecutor() as e:
-        print(json.dumps(dict(zip(govees, invokeall([e.submit(g.read).result for g in govees.values()])))))
 
 def main_temper():
     initlogging()

@@ -27,7 +27,19 @@
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 'Get data from Govee H5075.'
-from ..cli import main_govee
+from . import initlogging
+from ..govee import Govee
+from aridity.config import ConfigCtrl
+from concurrent.futures import ThreadPoolExecutor
+from diapyr.util import invokeall
+import json
+
+def main():
+    initlogging()
+    config = ConfigCtrl().loadappconfig(main, 'govee.arid')
+    govees = {name: Govee(s) for name, s in -config.sensor}
+    with ThreadPoolExecutor() as e:
+        print(json.dumps(dict(zip(govees, invokeall([e.submit(g.read).result for g in govees.values()])))))
 
 if '__main__' == __name__:
-    main_govee()
+    main()
