@@ -29,6 +29,7 @@
 from .govee import Govee
 from .mijia import Delegate
 from .p110 import Identity, LoginParams, P110
+from .scripts import initlogging
 from .temper import Temper
 from .util import Retry
 from argparse import ArgumentParser
@@ -40,9 +41,6 @@ from diapyr.util import invokeall
 import json, logging
 
 log = logging.getLogger(__name__)
-
-def _initlogging():
-    logging.basicConfig(format = "%(asctime)s %(levelname)s %(message)s", level = logging.DEBUG)
 
 @types(this = Identity)
 def identityfactory():
@@ -64,7 +62,7 @@ class Command:
         return self.name, self.retry(self.command)
 
 def main_p110():
-    _initlogging()
+    initlogging()
     config = ConfigCtrl().loadappconfig(main_p110, 'p110.arid')
     parser = ArgumentParser()
     parser.add_argument('--cron', action = 'store_true')
@@ -90,7 +88,7 @@ def main_p110():
         print(json.dumps(dict(invokeall([entryfuture(*item).result for item in -config.plug]))))
 
 def main_mijia():
-    _initlogging()
+    initlogging()
     config = ConfigCtrl().loadappconfig(main_mijia, 'mijia.arid')
     parser = ArgumentParser()
     parser.add_argument('--exclude', action = 'append', default = [])
@@ -104,12 +102,12 @@ def main_mijia():
         print(json.dumps(dict(zip(sensors, invokeall([e.submit(retry, (lambda: None) if name in config.cli.exclude else Delegate(conf).read).result for name, conf in sensors.items()])))))
 
 def main_govee():
-    _initlogging()
+    initlogging()
     config = ConfigCtrl().loadappconfig(main_govee, 'govee.arid')
     govees = {name: Govee(s) for name, s in -config.sensor}
     with ThreadPoolExecutor() as e:
         print(json.dumps(dict(zip(govees, invokeall([e.submit(g.read).result for g in govees.values()])))))
 
 def main_temper():
-    _initlogging()
+    initlogging()
     print(Temper('/dev/hidraw1').read())
