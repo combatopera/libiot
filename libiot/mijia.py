@@ -42,6 +42,10 @@ def carnotcycle2(t, rh):
 def onlineconversion(t, rh):
     return ((0.000002 * t ** 4) + (0.0002 * t ** 3) + (0.0095 * t ** 2) + (0.337 * t) + 4.9034) * rh / 100
 
+def indoorah(t, rh):
+    'Undo effect on measured humidity of absorption at low temperature and evaporation at high temperature.'
+    return t / 5 + rh / 10
+
 class Delegate(DefaultDelegate):
 
     readint = partial(int.from_bytes, byteorder = 'little')
