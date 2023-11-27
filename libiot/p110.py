@@ -106,12 +106,11 @@ class P110(Persistent):
         self.identity = identity
 
     def _reset(self):
-        for name in 'reqparams', 'cipher':
+        for name in 'reqparams', 'cipher', 'session':
             try:
                 delattr(self, name)
             except AttributeError:
                 pass
-        self.session = Session()
 
     def validate(self, contextidentity):
         return self.identity.terminaluuid == contextidentity.terminaluuid
@@ -132,7 +131,11 @@ class P110(Persistent):
                 d = dict(params = self.reqparams)
             except AttributeError:
                 d = {}
-            return self.session.post(f"http://{self.host}/app", **d, json = kwargs, timeout = self.timeout)
+            try:
+                session = self.session
+            except AttributeError:
+                self._enclosinginstance.session = session = Session()
+            return session.post(f"http://{self.host}/app", **d, json = kwargs, timeout = self.timeout)
 
         def _handshake(self):
             self._enclosinginstance.cipher = Cipher.create(self.identity.decrypt(b64decode(P110Exception.check(self._post(
@@ -141,7 +144,7 @@ class P110(Persistent):
             ).json())['key'])))
 
         def __getattr__(self, methodname):
-            if methodname.startswith('__') or methodname in {'cipher', 'reqparams'}:
+            if methodname.startswith('__') or methodname in {'session', 'cipher', 'reqparams'}:
                 raise AttributeError(methodname)
             def method(**methodparams):
                 while True:
