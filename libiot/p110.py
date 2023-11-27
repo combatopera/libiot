@@ -120,7 +120,7 @@ class P110(Persistent):
             self.persist(cachedir / self.host)
 
     @innerclass
-    class Client:
+    class BaseClient:
 
         def __init__(self, config, loginparams):
             self.timeout = config.timeout
