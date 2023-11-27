@@ -26,14 +26,14 @@
 #
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-from .util import Cipher
+from .util import Cipher, dig
 from hashlib import sha256
 from unittest import TestCase
 
 class TestCipher(TestCase):
 
     def setUp(self):
-        self.c = Cipher.create(sha256(b'very secure phrase').digest())
+        self.c = Cipher.create(dig(sha256, b'very secure phrase'))
 
     def test_works(self):
         ciphertext = self.c.encrypt('woo')

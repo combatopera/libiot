@@ -119,6 +119,9 @@ class Cipher:
     def decrypt(self, text):
         return json.loads(Pad.decode(self._aes().decrypt(b64decode(text))))
 
+def dig(h, v):
+    return h(v).digest()
+
 class Retry:
 
     timeoutexceptions = BTLEDisconnectError, ConnectionError, ReadTimeout
