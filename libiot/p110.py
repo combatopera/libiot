@@ -126,6 +126,30 @@ class P110(Persistent):
             self.timeout = config.timeout
             self.loginparams = loginparams
 
+        def ison(self):
+            return self.get_device_info()['device_on']
+
+        def on(self):
+            self.set_device_info(device_on = True)
+
+        def off(self):
+            self.set_device_info(device_on = False)
+
+        def nickname(self):
+            return b64decode(self.get_device_info()['nickname']).decode(charset)
+
+        def status(self):
+            return 'on' if self.ison() else 'off'
+
+        def time(self):
+            d = self.get_device_time()
+            return pytz.utc.localize(datetime.utcfromtimestamp(d['timestamp'])).astimezone(pytz.timezone(d['region'])).strftime('%Y-%m-%d %H:%M:%S %Z')
+
+        def power(self):
+            return self.get_energy_usage()['current_power'] / 1000
+
+    class Client(BaseClient):
+
         def _post(self, **kwargs):
             try:
                 d = dict(params = self.reqparams)
@@ -168,25 +192,3 @@ class P110(Persistent):
 
         def _login(self):
             self._enclosinginstance.reqparams = dict(token = self.login_device(**self.loginparams.params)['token'])
-
-        def ison(self):
-            return self.get_device_info()['device_on']
-
-        def on(self):
-            self.set_device_info(device_on = True)
-
-        def off(self):
-            self.set_device_info(device_on = False)
-
-        def nickname(self):
-            return b64decode(self.get_device_info()['nickname']).decode(charset)
-
-        def status(self):
-            return 'on' if self.ison() else 'off'
-
-        def time(self):
-            d = self.get_device_time()
-            return pytz.utc.localize(datetime.utcfromtimestamp(d['timestamp'])).astimezone(pytz.timezone(d['region'])).strftime('%Y-%m-%d %H:%M:%S %Z')
-
-        def power(self):
-            return self.get_energy_usage()['current_power'] / 1000
