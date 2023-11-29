@@ -44,7 +44,7 @@ def identityfactory():
 
 @types(Config, Identity, LoginParams, this = P110)
 def p110factory(config, identity, loginparams):
-    return P110.loadorcreate(config, identity).Client(config, loginparams)
+    return getattr(P110.loadorcreate(config, identity), config.protocol)(config, loginparams)
 
 class Command:
 

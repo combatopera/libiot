@@ -31,7 +31,8 @@ from base64 import b64decode, b64encode
 from bluepy.btle import BTLEDisconnectError
 from Crypto.Cipher import AES
 from diapyr import types
-from diapyr.util import singleton
+from diapyr.util import innerclass, singleton
+from hashlib import sha256
 from lagoon.util import atomic
 from pathlib import Path
 from pkcs7 import PKCS7Encoder
@@ -118,6 +119,36 @@ class Cipher:
 
     def decrypt(self, text):
         return json.loads(Pad.decode(self._aes().decrypt(b64decode(text))))
+
+class KLAPCipher:
+
+    @innerclass
+    class Channel:
+
+        def __init__(self, seq):
+            self.seqbytes = seq.to_bytes(4, 'big', signed = True)
+            self.seq = seq
+
+        def _aes(self):
+            return AES.new(self.key, AES.MODE_CBC, self.iv + self.seqbytes)
+
+        def encrypt(self, obj):
+            ciphertext = self._aes().encrypt(Pad.encode(json.dumps(obj).encode('ascii')))
+            return dig(sha256, self.sig + self.seqbytes + ciphertext) + ciphertext
+
+        def decrypt(self, v):
+            return json.loads(Pad.decode(self._aes().decrypt(v[32:])))
+
+    def __init__(self, blob):
+        self.key = dig(sha256, b'lsk' + blob)[:16]
+        ivdata = dig(sha256, b'iv' + blob)
+        self.iv = ivdata[:12]
+        self.seq = int.from_bytes(ivdata[-4:], 'big', signed = True)
+        self.sig = dig(sha256, b'ldk' + blob)[:28]
+
+    def channel(self):
+        self.seq = seq = self.seq + 1
+        return self.Channel(seq)
 
 def dig(h, v):
     return h(v).digest()

@@ -26,7 +26,7 @@
 #
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-from .util import b64str, Cipher, P110Exception, Persistent
+from .util import b64str, Cipher, dig, KLAPCipher, P110Exception, Persistent
 from aridity.config import Config
 from aridity.util import null_exc_info
 from base64 import b64decode
@@ -35,9 +35,11 @@ from Crypto.PublicKey import RSA
 from datetime import datetime
 from diapyr import types
 from diapyr.util import innerclass
-from hashlib import sha1
+from hashlib import sha1, sha256
 from pathlib import Path
 from requests import Session
+from requests.exceptions import HTTPError
+from secrets import token_bytes
 from uuid import uuid4
 import logging, time, pytz, sys
 
@@ -78,10 +80,13 @@ class LoginParams:
     @types(Config)
     def __init__(self, config):
         self.password = config.password
+        usernamebytes = config.username.encode(charset)
+        passwordbytes = self.password.encode(charset)
         self.params = dict(
-            username = b64str(sha1(config.username.encode(charset)).hexdigest().encode('ascii')),
-            password = b64str(self.password.encode(charset)),
+            username = b64str(sha1(usernamebytes).hexdigest().encode('ascii')),
+            password = b64str(passwordbytes),
         )
+        self.hash = dig(sha256, dig(sha1, usernamebytes) + dig(sha1, passwordbytes))
 
     def dispose(self):
         if null_exc_info == sys.exc_info():
@@ -106,7 +111,7 @@ class P110(Persistent):
         self.identity = identity
 
     def _reset(self):
-        for name in 'reqparams', 'cipher', 'session':
+        for name in 'klapcipher', 'klapsession', 'reqparams', 'cipher', 'session':
             try:
                 delattr(self, name)
             except AttributeError:
@@ -192,3 +197,42 @@ class P110(Persistent):
 
         def _login(self):
             self._enclosinginstance.reqparams = dict(token = self.login_device(**self.loginparams.params)['token'])
+
+    class KLAP(BaseClient):
+
+        def _post(self, slug, params, data):
+            try:
+                session = self.klapsession
+            except AttributeError:
+                self._enclosinginstance.klapsession = session = Session()
+            response = session.post(f"http://{self.host}/app/{slug}", params = params, data = data, timeout = self.timeout)
+            response.raise_for_status()
+            return response.content
+
+        def _handshake(self):
+            localtoken = token_bytes(16)
+            remotetoken = self._post('handshake1', {}, localtoken)[:16]
+            self._post('handshake2', {}, dig(sha256, remotetoken + localtoken + self.loginparams.hash))
+            return KLAPCipher(localtoken + remotetoken + self.loginparams.hash)
+
+        def __getattr__(self, methodname):
+            if methodname in {'klapsession', 'klapcipher'}:
+                raise AttributeError(methodname)
+            def method(**methodparams):
+                while True:
+                    try:
+                        cipher = self.klapcipher
+                    except AttributeError:
+                        self._enclosinginstance.klapcipher = cipher = self._handshake()
+                    channel = cipher.channel()
+                    try:
+                        return P110Exception.check(channel.decrypt(self._post(
+                            'request',
+                            dict(seq = channel.seq),
+                            channel.encrypt(dict(method = methodname, params = methodparams)),
+                        )))
+                    except HTTPError as e:
+                        if 403 != e.response.status_code:
+                            raise
+                        self._reset()
+            return method

@@ -35,7 +35,9 @@ force = $(cli f)
 keyring_cron = $(cli cron)
 keyring_force = $(force)
 password = $keyring($(appname) $(username))
-plug * host = $(void)
+plug *
+    host = $(void)
+    protocol = Client
 retry
     fail = $(cli fail)
     seconds = $(cli retry)
