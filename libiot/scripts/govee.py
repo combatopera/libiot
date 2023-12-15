@@ -29,14 +29,19 @@
 'Get data from Govee H5075.'
 from . import initlogging
 from ..govee import Govee
+from argparse import ArgumentParser
 from aridity.config import ConfigCtrl
 from concurrent.futures import ThreadPoolExecutor
 from diapyr.util import invokeall
-import json
+import json, logging
 
 def main():
     initlogging()
     config = ConfigCtrl().loadappconfig(main, 'govee.arid')
+    parser = ArgumentParser()
+    parser.add_argument('-v', action = 'store_true')
+    parser.parse_args(namespace = config.cli)
+    logging.getLogger().setLevel(logging.DEBUG if config.verbose else logging.INFO)
     govees = {name: Govee(s) for name, s in -config.sensor}
     with ThreadPoolExecutor() as e:
         print(json.dumps(dict(zip(govees, invokeall([e.submit(g.read).result for g in govees.values()])))))

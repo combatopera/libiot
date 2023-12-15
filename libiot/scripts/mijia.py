@@ -34,7 +34,7 @@ from argparse import ArgumentParser
 from aridity.config import ConfigCtrl
 from concurrent.futures import ThreadPoolExecutor
 from diapyr.util import invokeall
-import json
+import json, logging
 
 def main():
     initlogging()
