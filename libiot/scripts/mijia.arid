@@ -29,8 +29,10 @@
 cli
     path = $(void)
     retry = 0
+    v = $(void)
 path = $(cli path)
 retry
     fail = $(cli fail)
     seconds = $(cli retry)
 sensor * address = $(void)
+verbose = $(cli v)

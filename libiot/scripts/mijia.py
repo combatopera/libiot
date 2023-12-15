@@ -43,8 +43,10 @@ def main():
     parser.add_argument('--exclude', action = 'append', default = [])
     parser.add_argument('--fail', action = 'store_true')
     parser.add_argument('--retry')
+    parser.add_argument('-v', action = 'store_true')
     parser.add_argument('path', nargs = '*')
     parser.parse_args(namespace = config.cli)
+    logging.getLogger().setLevel(logging.DEBUG if config.verbose else logging.INFO)
     sensors = dict(-config.sensor)
     retry = Retry(config)
     with ThreadPoolExecutor() as e:

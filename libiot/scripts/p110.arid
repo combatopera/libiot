@@ -30,6 +30,7 @@ appname := $label()
 cli
     command = $(void)
     retry = 0
+    v = $(void)
 command = $(cli command)
 force = $(cli f)
 keyring_cron = $(cli cron)
