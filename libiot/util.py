@@ -160,15 +160,17 @@ class Retry:
     @types(Config)
     def __init__(self, config):
         self.fail = config.retry.fail
-        self.seconds = float(config.retry.seconds)
+        self.giveup = time.time() + float(config.retry.seconds)
+
+    def remaining(self):
+        return max(0, self.giveup - time.time())
 
     def __call__(self, f):
-        giveup = time.time() + self.seconds
         while True:
             try:
                 return f()
             except self.timeoutexceptions:
-                if time.time() >= giveup:
+                if not self.remaining():
                     if self.fail:
                         raise
                     break
