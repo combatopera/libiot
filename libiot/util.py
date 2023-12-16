@@ -155,7 +155,7 @@ def dig(h, v):
 
 class Retry:
 
-    timeoutexceptions = BTLEDisconnectError, ConnectionError, ReadTimeout
+    abortexceptions = BTLEDisconnectError, ConnectionError, ReadTimeout
 
     @types(Config)
     def __init__(self, config):
@@ -166,12 +166,12 @@ class Retry:
         return max(0, self.giveup - time.time())
 
     def __call__(self, f):
-        while True:
+        keepgoing = True
+        while keepgoing:
             try:
                 return f()
-            except self.timeoutexceptions:
-                if not self.remaining():
-                    if self.fail:
-                        raise
-                    break
-                log.exception('Timeout:')
+            except self.abortexceptions:
+                keepgoing = self.remaining()
+                if self.fail and not keepgoing:
+                    raise
+                log.exception(f"Abort: {f}")
