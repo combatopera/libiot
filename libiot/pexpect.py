@@ -26,51 +26,71 @@
 #
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-from diapyr.util import innerclass
-from bluepy.btle import BTLEDisconnectError, DefaultDelegate, Scanner
-from pathlib import Path
-import logging
+from .util import AbortException
+from io import BytesIO
+from pexpect import EOF, spawn, TIMEOUT
+from signal import SIGTERM
+from types import SimpleNamespace
+import logging, re
 
 log = logging.getLogger(__name__)
 
-def _deviceindex():
-    prefix = 'hci'
-    p, = (p for p in Path('/sys/class/bluetooth').iterdir() if p.name.startswith(prefix))
-    return int(p.name[len(prefix):])
+class Process:
 
-class Govee:
+    def __init__(self, command, remaining, logprefix, context):
+        self.buffer = BytesIO()
+        self.ctl = spawn(command, logfile = self.buffer)
+        self.remaining = remaining
+        self.logprefix = logprefix
+        self.context = context
 
-    class Break(Exception): pass
+    def print(self, *lines):
+        for l in lines:
+            self.ctl.sendline(l)
 
-    @innerclass
-    class Delegate(DefaultDelegate):
-
-        result = None
-
-        def handleDiscovery(self, dev, isNewDev, isNewData):
-            if dev.addr == self.address:
-                data = dev.scanData[255]
-                n = int(data[3:6].hex(), 16)
-                self.result = dict(
-                    temperature = n // 1000 / 10,
-                    humidity = n % 1000 / 10,
-                    battery = data[6],
-                )
-                raise self.Break
-
-    def __init__(self, config):
-        self.address = config.address.lower()
-        self.timeout = config.timeout
-
-    def read(self):
-        d = self.Delegate()
-        index = _deviceindex()
-        s = Scanner(index).withDelegate(d)
-        log.info("Scanning device: %s", index)
+    def expect(self, *alternatives, cleanup = False):
         try:
-            s.scan(self.timeout, passive = True)
-        except BTLEDisconnectError as e:
-            log.error("Scan error: %s", e)
-        except self.Break:
-            pass
-        return d.result
+            return alternatives[self.ctl.expect([a.regex for a in alternatives], timeout = None if cleanup else self.remaining())]
+        except TIMEOUT:
+            log.debug("%sSession tail: %s", self.logprefix, self._tail())
+            raise AbortException('Out of time.')
+
+    def _tail(self):
+        text = self.buffer.getvalue().decode()
+        if not text:
+            return text
+        lines = text.splitlines(True)
+        i = len(lines) - 1
+        n = 1
+        while n < self.context:
+            j = i
+            while True:
+                j -= 1
+                if j < 0 or '\n' == lines[j][-1]:
+                    break
+            if j < 0:
+                break
+            i = j
+            n += 1
+        return ''.join(lines[i:])
+
+    def grouptext(self, group):
+        return self.ctl.match.group(group).decode()
+
+    def dispose(self):
+        self.ctl.kill(SIGTERM)
+        self.expect(SimpleNamespace(regex = EOF), cleanup = True)
+        self.ctl.wait()
+
+class Alt:
+
+    @classmethod
+    def matchends(cls, *lineends):
+        return cls('\r\n[^\n]*'.join(lineends))
+
+    @classmethod
+    def plain(cls, text):
+        return cls(re.escape(text))
+
+    def __init__(self, regex):
+        self.regex = regex

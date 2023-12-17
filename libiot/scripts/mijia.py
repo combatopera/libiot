@@ -28,13 +28,28 @@
 
 'Get data from all configured Mijia thermometer/hygrometer 2 sensors.'
 from . import initlogging
-from ..mijia import Delegate
+from ..bluetoothctl import BluetoothShell
 from ..util import Retry
 from argparse import ArgumentParser
-from aridity.config import ConfigCtrl
+from aridity.config import Config, ConfigCtrl
 from concurrent.futures import ThreadPoolExecutor
+from diapyr import DI, types
 from diapyr.util import invokeall
+from functools import partial
 import json, logging
+
+class Script:
+
+    @types(Config, BluetoothShell, Retry, ThreadPoolExecutor)
+    def __init__(self, config, shell, retry, e):
+        self.exclude = set(config.exclude)
+        self.sensors = {name: s.address for name, s in -config.sensor}
+        self.shell = shell
+        self.retry = retry
+        self.e = e
+
+    def run(self):
+        return dict(zip(self.sensors, invokeall([self.e.submit(self.retry, (lambda: None) if name in self.exclude else partial(self.shell.read_lywsd03mmc, address)).result for name, address in self.sensors.items()])))
 
 def main():
     initlogging()
@@ -44,13 +59,15 @@ def main():
     parser.add_argument('--fail', action = 'store_true')
     parser.add_argument('--retry')
     parser.add_argument('-v', action = 'store_true')
-    parser.add_argument('path', nargs = '*')
     parser.parse_args(namespace = config.cli)
     logging.getLogger().setLevel(logging.DEBUG if config.verbose else logging.INFO)
-    sensors = dict(-config.sensor)
-    retry = Retry(config)
-    with ThreadPoolExecutor() as e:
-        print(json.dumps(dict(zip(sensors, invokeall([e.submit(retry, (lambda: None) if name in config.cli.exclude else Delegate(conf).read).result for name, conf in sensors.items()])))))
+    with DI() as di, ThreadPoolExecutor() as e:
+        di.add(BluetoothShell)
+        di.add(config)
+        di.add(e)
+        di.add(Retry)
+        di.add(Script)
+        print(json.dumps(di(Script).run()))
 
 if '__main__' == __name__:
     main()

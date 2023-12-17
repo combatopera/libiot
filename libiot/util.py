@@ -28,7 +28,6 @@
 
 from aridity.config import Config
 from base64 import b64decode, b64encode
-from bluepy.btle import BTLEDisconnectError
 from Crypto.Cipher import AES
 from diapyr import types
 from diapyr.util import innerclass, singleton
@@ -153,9 +152,11 @@ class KLAPCipher:
 def dig(h, v):
     return h(v).digest()
 
+class AbortException(Exception): pass
+
 class Retry:
 
-    abortexceptions = BTLEDisconnectError, ConnectionError, ReadTimeout
+    abortexceptions = AbortException, ConnectionError, ReadTimeout
 
     @types(Config)
     def __init__(self, config):
