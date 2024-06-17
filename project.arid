@@ -26,6 +26,13 @@
 :
 : THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
+author = Andrzej Cichocki
+buildbot enabled = true
+github account = combatopera
+licenses += MIT
+MIT path = LICENSE.pyp100
+name = libiot
+pyversions += 3
 requires +=
     aridity>=52
     diapyr>=23
@@ -36,12 +43,5 @@ requires +=
     pycryptodome>=3.9.8
     pytz>=2021.1
     requests>=2.24.0
+tagline = Communicate with smart devices
 years += 2021
-author = Andrzej Cichocki
-name = libiot
-pypi participant = false
-licenses += MIT
-MIT path = LICENSE.pyp100
-pyversions += 3
-buildbot enabled = true
-executable = true
