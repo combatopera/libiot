@@ -14,6 +14,7 @@ pip3 install --user libiot
 If you prefer to keep .local clean, install to a virtualenv:
 ```
 python3 -m venv venvname
+venvname/bin/pip install -U pip
 venvname/bin/pip install libiot
 . venvname/bin/activate
 ```
