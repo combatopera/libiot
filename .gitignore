@@ -1,4 +1,6 @@
 __pycache__/
-/libiot.egg-info/
+libiot.egg-info/*
+!libiot.egg-info/PKG-INFO
+!libiot.egg-info/requires.txt
 /setup.cfg
 /setup.py
