@@ -33,7 +33,6 @@ licenses += MIT
 MIT path = LICENSE.pyp100
 name = libiot
 pydoc_enabled = false
-pyversions += 3
 requires +=
     aridity>=52
     diapyr>=23
