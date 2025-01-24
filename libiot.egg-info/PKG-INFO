@@ -33,14 +33,14 @@ venvname/bin/pip install libiot
 
 ### To use, permanently
 ```
-pip3 install --user libiot
+pip3 install --break-system-packages --user libiot
 ```
 See `~/.local/bin` for executables.
 
 ### To develop
 First install venvpool to get the `motivate` command:
 ```
-pip3 install --user venvpool
+pip3 install --break-system-packages --user venvpool
 ```
 Get codebase and install executables:
 ```
