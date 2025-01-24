@@ -124,7 +124,7 @@ class BluetoothShell:
     def read_h5075(self, address):
         log.info("[%s] Scan.", address)
         self.print('scan on') # FIXME LATER: Allow duplicates somehow.
-        self.expect(Alt.matchends(f"Device {re.escape(address)} ManufacturerData Key: 0xec88", f"Device {re.escape(address)} ManufacturerData Value:", f"({_dataregex(6)})"))
+        self.expect(Alt.matchends(f"Device {re.escape(address)} ManufacturerData[ .]Key: 0xec88(?: [(]60552[)])?", f"Device {re.escape(address)} ManufacturerData[ .]Value:", f"({_dataregex(6)})"))
         return decode_h5075(self.getdata(1))
 
     def dispose(self):
