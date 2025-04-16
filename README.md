@@ -1,5 +1,5 @@
 # libiot
-Communicate with smart devices
+Communicate with smart devices.
 
 ## Install
 These are generic installation instructions.
