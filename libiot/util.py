@@ -30,7 +30,8 @@ from aridity.config import Config
 from base64 import b64decode, b64encode
 from Crypto.Cipher import AES
 from diapyr import types
-from diapyr.util import innerclass, singleton
+from diapyr.util import innerclass
+from foyndation import singleton
 from hashlib import sha256
 from lagoon.util import atomic
 from pathlib import Path
