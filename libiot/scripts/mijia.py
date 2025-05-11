@@ -33,8 +33,7 @@ from argparse import ArgumentParser
 from aridity.config import Config, ConfigCtrl
 from concurrent.futures import ThreadPoolExecutor
 from diapyr import DI, types
-from diapyr.util import invokeall
-from foyndation import initlogging
+from foyndation import initlogging, invokeall
 from functools import partial
 import json, logging
 

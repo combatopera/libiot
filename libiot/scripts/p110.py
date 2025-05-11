@@ -34,8 +34,7 @@ from aridity.config import Config, ConfigCtrl
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import ExitStack
 from diapyr import DI, types
-from diapyr.util import invokeall
-from foyndation import initlogging
+from foyndation import initlogging, invokeall
 import json, logging
 
 @types(this = Identity)
