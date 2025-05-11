@@ -27,7 +27,6 @@
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 'Run given command on all configured Tapo P100/P110 plugs.'
-from . import initlogging
 from ..p110 import Identity, LoginParams, P110
 from ..util import Retry
 from argparse import ArgumentParser
@@ -36,6 +35,7 @@ from concurrent.futures import ThreadPoolExecutor
 from contextlib import ExitStack
 from diapyr import DI, types
 from diapyr.util import invokeall
+from foyndation import initlogging
 import json, logging
 
 @types(this = Identity)
