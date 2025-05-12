@@ -34,7 +34,7 @@ from Crypto.Cipher import PKCS1_v1_5
 from Crypto.PublicKey import RSA
 from datetime import datetime
 from diapyr import types
-from diapyr.util import innerclass
+from foyndation import innerclass
 from hashlib import sha1, sha256
 from pathlib import Path
 from requests import Session

@@ -31,7 +31,7 @@ from .pexpect import Alt
 from .util import AbortException, Retry
 from aridity.config import Config
 from diapyr import types
-from diapyr.util import innerclass
+from foyndation import innerclass
 from functools import partial
 import logging, re
 
