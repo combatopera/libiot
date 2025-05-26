@@ -37,7 +37,6 @@ requires +=
     aridity>=52
     diapyr>=23
     foyndation>=12
-    keyring>=21.3.0
     lagoon>=24
     pexpect>=4.8.0
     pkcs7>=0.1.2

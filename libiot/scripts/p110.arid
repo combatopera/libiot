@@ -26,16 +26,13 @@
 :
 : THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-appname := $label()
 cli
     command = $(void)
     retry = 0
     v = $(void)
 command = $(cli command)
 force = $(cli f)
-keyring_cron = $(cli cron)
-keyring_force = $(force)
-password = $keyring($(appname) $(username))
+password = $(void)
 plug *
     host = $(void)
     protocol = Client
