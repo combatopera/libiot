@@ -8,7 +8,7 @@ License-File: LICENSE.pyp100
 License-File: COPYING
 Requires-Dist: aridity>=52
 Requires-Dist: diapyr>=23
-Requires-Dist: foyndation>=12
+Requires-Dist: foyndation>=16
 Requires-Dist: lagoon>=24
 Requires-Dist: pexpect>=4.8.0
 Requires-Dist: pkcs7>=0.1.2
