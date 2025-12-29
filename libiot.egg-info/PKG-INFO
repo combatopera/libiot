@@ -1,4 +1,4 @@
-Metadata-Version: 2.1
+Metadata-Version: 2.2
 Name: libiot
 Version: 1.dev0
 Summary: Communicate with smart devices
@@ -15,6 +15,11 @@ Requires-Dist: pkcs7>=0.1.2
 Requires-Dist: pycryptodome>=3.9.8
 Requires-Dist: pytz>=2021.1
 Requires-Dist: requests>=2.24.0
+Dynamic: description
+Dynamic: description-content-type
+Dynamic: home-page
+Dynamic: requires-dist
+Dynamic: summary
 
 # libiot
 Communicate with smart devices.
