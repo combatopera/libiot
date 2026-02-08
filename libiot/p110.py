@@ -35,6 +35,7 @@ from datetime import datetime
 from diapyr import types
 from foyndation import innerclass, null_exc_info
 from hashlib import sha1, sha256
+from http import HTTPStatus
 from pathlib import Path
 from requests import Session
 from requests.exceptions import HTTPError
@@ -231,7 +232,7 @@ class P110(Persistent):
                             channel.encrypt(dict(method = methodname, params = methodparams)),
                         )))
                     except HTTPError as e:
-                        if 403 != e.response.status_code:
+                        if HTTPStatus.FORBIDDEN != e.response.status_code:
                             raise
                         self._reset()
             return method
