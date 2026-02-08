@@ -50,6 +50,7 @@ charset = 'utf-8'
 class Identity(Persistent):
 
     @classmethod
+    @types()
     def loadorcreate(cls):
         return super().loadorcreate(cachedir / 'identity', [])
 

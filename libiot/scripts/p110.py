@@ -37,10 +37,6 @@ from foyndation import initlogging, invokeall
 from splut.actor.aio import EventLoopPool
 import json, logging
 
-@types(this = Identity)
-def identityfactory():
-    return Identity.loadorcreate()
-
 @types(Config, Identity, LoginParams, this = P110)
 def p110factory(config, identity, loginparams):
     return getattr(P110.loadorcreate(config, identity), config.protocol)(config, loginparams)
@@ -69,7 +65,7 @@ def main():
     logging.getLogger().setLevel(logging.DEBUG if config.verbose else logging.INFO)
     with DI() as di, ExitStack() as stack, EventLoopPool.open() as e:
         di.add(config)
-        di.add(identityfactory)
+        di.add(Identity)
         di.add(Retry)
         di.add(LoginParams)
         def entryfuture(name, conf):
