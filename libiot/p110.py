@@ -153,51 +153,6 @@ class P110(Persistent):
         def power(self):
             return self.get_energy_usage()['current_power'] / 1000
 
-    class Client(BaseClient):
-
-        def _post(self, **kwargs):
-            try:
-                d = dict(params = self.reqparams)
-            except AttributeError:
-                d = {}
-            try:
-                session = self.session
-            except AttributeError:
-                self._enclosinginstance.session = session = Session()
-            return session.post(f"http://{self.host}/app", **d, json = kwargs, timeout = self.timeout)
-
-        def _handshake(self):
-            self._enclosinginstance.cipher = Cipher.create(self.identity.decrypt(b64decode(P110Exception.check(self._post(
-                method = 'handshake',
-                params = self.identity.handshakepayload(),
-            ).json())['key'])))
-
-        def __getattr__(self, methodname):
-            if methodname.startswith('__') or methodname in {'session', 'cipher', 'reqparams'}:
-                raise AttributeError(methodname)
-            def method(**methodparams):
-                while True:
-                    if not hasattr(self, 'cipher'):
-                        self._handshake()
-                    if not hasattr(self, 'reqparams') and 'login_device' != methodname:
-                        self._login()
-                    try:
-                        return P110Exception.check(self.cipher.decrypt(P110Exception.check(self._post(
-                            method = 'securePassthrough',
-                            params = dict(request = self.cipher.encrypt(self.identity.payload(
-                                method = methodname,
-                                params = methodparams,
-                            ))),
-                        ).json())['response']))
-                    except P110Exception as e:
-                        if 9999 != e.error_code:
-                            raise
-                        self._reset()
-            return method
-
-        def _login(self):
-            self._enclosinginstance.reqparams = dict(token = self.login_device(**self.loginparams.params)['token'])
-
     class KLAP(BaseClient):
 
         def _post(self, slug, params, data):

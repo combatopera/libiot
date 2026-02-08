@@ -35,7 +35,7 @@ force = $(cli f)
 password = $(void)
 plug *
     host = $(void)
-    protocol = Client
+    protocol = KLAP
 retry
     fail = $(cli fail)
     seconds = $(cli retry)
