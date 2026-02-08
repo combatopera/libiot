@@ -99,13 +99,7 @@ class P110(Persistent):
     @classmethod
     @types(Config, Identity)
     def loadorcreate(cls, config, identity):
-        p110 = super().loadorcreate(cachedir / config.host, [config, identity], identity)
-        if config.force:
-            try:
-                delattr(p110, 'reqparams')
-            except AttributeError:
-                pass
-        return p110
+        return super().loadorcreate(cachedir / config.host, [config, identity], identity)
 
     def __init__(self, config, identity):
         self.host = config.host
@@ -113,7 +107,7 @@ class P110(Persistent):
         self.identity = identity
 
     def _reset(self):
-        for name in 'klapcipher', 'klapsession', 'reqparams', 'cipher', 'session':
+        for name in 'klapcipher', 'klapsession':
             try:
                 delattr(self, name)
             except AttributeError:

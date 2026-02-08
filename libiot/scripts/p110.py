@@ -56,7 +56,6 @@ def main():
     initlogging()
     config = ConfigCtrl().loadappconfig(main, 'p110.arid')
     parser = ArgumentParser()
-    parser.add_argument('-f', action = 'store_true')
     parser.add_argument('--fail', action = 'store_true')
     parser.add_argument('--retry')
     parser.add_argument('-v', action = 'store_true')

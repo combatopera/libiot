@@ -31,7 +31,6 @@ cli
     retry = 0
     v = $(void)
 command = $(cli command)
-force = $(cli f)
 password = $(void)
 plug *
     host = $(void)
