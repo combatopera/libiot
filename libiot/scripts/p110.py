@@ -37,9 +37,9 @@ from foyndation import initlogging, invokeall
 from splut.actor.aio import EventLoopPool
 import json, logging
 
-@types(Config, Identity, LoginParams)
-def protocolfactory(config, identity, loginparams):
-    return getattr(P110.loadorcreate(config, identity), config.protocol)(config, loginparams)
+@types(Config, P110, LoginParams)
+def protocolfactory(config, p110, loginparams):
+    return getattr(p110, config.protocol)(config, loginparams)
 
 class Command:
 
@@ -72,6 +72,7 @@ def main():
             plugdi = stack.enter_context(DI(di))
             plugdi.add(name)
             plugdi.add(conf)
+            plugdi.add(P110)
             plugdi.add(protocolfactory)
             plugdi.add(Command)
             return e.submit(plugdi(Command))
