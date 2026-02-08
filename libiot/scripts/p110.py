@@ -37,15 +37,15 @@ from foyndation import initlogging, invokeall
 from splut.actor.aio import EventLoopPool
 import json, logging
 
-@types(Config, Identity, LoginParams, this = P110)
-def p110factory(config, identity, loginparams):
+@types(Config, Identity, LoginParams)
+def protocolfactory(config, identity, loginparams):
     return getattr(P110.loadorcreate(config, identity), config.protocol)(config, loginparams)
 
 class Command:
 
-    @types(Config, Retry, P110, str)
-    def __init__(self, config, retry, p110, name):
-        self.command = getattr(p110, config.command)
+    @types(Config, Retry, protocolfactory, str)
+    def __init__(self, config, retry, protocol, name):
+        self.command = getattr(protocol, config.command)
         self.retry = retry
         self.name = name
 
@@ -72,7 +72,7 @@ def main():
             plugdi = stack.enter_context(DI(di))
             plugdi.add(name)
             plugdi.add(conf)
-            plugdi.add(p110factory)
+            plugdi.add(protocolfactory)
             plugdi.add(Command)
             return e.submit(plugdi(Command))
         print(json.dumps(dict(invokeall([entryfuture(*item).wait for item in -config.plug]))))
