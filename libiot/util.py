@@ -27,7 +27,7 @@
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 from aridity.config import Config
-from base64 import b64decode, b64encode
+from base64 import b64encode
 from Crypto.Cipher import AES
 from diapyr import types
 from foyndation import innerclass, singleton
@@ -99,25 +99,6 @@ class Pad:
     def __getattr__(self, methodname):
         m = getattr(self.encoder, methodname)
         return lambda data: m(data.decode('latin-1')).encode('latin-1')
-
-class Cipher:
-
-    @classmethod
-    def create(cls, data):
-        return cls(data[:16], data[16:])
-
-    def __init__(self, key, iv):
-        self.key = key
-        self.iv = iv
-
-    def _aes(self):
-        return AES.new(self.key, AES.MODE_CBC, self.iv)
-
-    def encrypt(self, obj):
-        return b64str(self._aes().encrypt(Pad.encode(json.dumps(obj).encode('ascii'))))
-
-    def decrypt(self, text):
-        return json.loads(Pad.decode(self._aes().decrypt(b64decode(text))))
 
 class KLAPCipher:
 
