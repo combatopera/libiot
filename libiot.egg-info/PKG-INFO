@@ -15,6 +15,7 @@ Requires-Dist: pkcs7>=0.1.2
 Requires-Dist: pycryptodome>=3.9.8
 Requires-Dist: pytz>=2021.1
 Requires-Dist: requests>=2.24.0
+Requires-Dist: splut>=27
 Dynamic: description
 Dynamic: description-content-type
 Dynamic: home-page

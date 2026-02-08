@@ -31,10 +31,10 @@ from ..p110 import Identity, LoginParams, P110
 from ..util import Retry
 from argparse import ArgumentParser
 from aridity.config import Config, ConfigCtrl
-from concurrent.futures import ThreadPoolExecutor
 from contextlib import ExitStack
 from diapyr import DI, types
 from foyndation import initlogging, invokeall
+from splut.actor.aio import EventLoopPool
 import json, logging
 
 @types(this = Identity)
@@ -67,7 +67,7 @@ def main():
     parser.add_argument('command')
     parser.parse_args(namespace = config.cli)
     logging.getLogger().setLevel(logging.DEBUG if config.verbose else logging.INFO)
-    with DI() as di, ExitStack() as stack, ThreadPoolExecutor() as e:
+    with DI() as di, ExitStack() as stack, EventLoopPool.open() as e:
         di.add(config)
         di.add(identityfactory)
         di.add(Retry)
@@ -79,7 +79,7 @@ def main():
             plugdi.add(p110factory)
             plugdi.add(Command)
             return e.submit(plugdi(Command))
-        print(json.dumps(dict(invokeall([entryfuture(*item).result for item in -config.plug]))))
+        print(json.dumps(dict(invokeall([entryfuture(*item).wait for item in -config.plug]))))
 
 if '__main__' == __name__:
     main()
