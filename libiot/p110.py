@@ -33,10 +33,8 @@ from datetime import datetime
 from diapyr import types
 from foyndation import null_exc_info
 from hashlib import sha1, sha256
-from http import HTTPStatus
 from pathlib import Path
 from requests import Session
-from requests.exceptions import HTTPError
 from secrets import token_bytes
 import logging, pytz, sys
 
