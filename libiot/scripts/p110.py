@@ -31,12 +31,16 @@ from ..p110 import LoginParams, P110
 from ..util import Retry
 from argparse import ArgumentParser
 from aridity.config import Config, ConfigCtrl
+from concurrent.futures import ThreadPoolExecutor
 from contextlib import ExitStack
 from diapyr import DI, types
 from foyndation import initlogging, invokeall
 from splut.actor import Spawn
-from splut.actor.aio import EventLoopPool
 import json, logging
+
+@types(ThreadPoolExecutor, this = Spawn)
+def spawnfactory(e):
+    return Spawn(e)
 
 class Command:
 
@@ -59,11 +63,12 @@ def main():
     parser.add_argument('command')
     parser.parse_args(namespace = config.cli)
     logging.getLogger().setLevel(logging.DEBUG if config.verbose else logging.INFO)
-    with DI() as di, ExitStack() as stack, EventLoopPool.open() as e:
+    with DI() as di, ExitStack() as stack, ThreadPoolExecutor() as e:
         di.add(config)
         di.add(Retry)
         di.add(LoginParams)
-        di.add(Spawn(e))
+        di.add(e)
+        di.add(spawnfactory)
         def entryfuture(name, conf):
             plugdi = stack.enter_context(DI(di))
             plugdi.add(name)
@@ -71,7 +76,7 @@ def main():
             plugdi.add(P110)
             plugdi.add(Command)
             return e.submit(plugdi(Command))
-        print(json.dumps(dict(invokeall([entryfuture(*item).wait for item in -config.plug]))))
+        print(json.dumps(dict(invokeall([entryfuture(*item).result for item in -config.plug]))))
 
 if '__main__' == __name__:
     main()
