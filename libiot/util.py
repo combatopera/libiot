@@ -32,39 +32,11 @@ from Crypto.Cipher import AES
 from diapyr import types
 from foyndation import innerclass, singleton
 from hashlib import sha256
-from lagoon.util import atomic
-from pathlib import Path
 from pkcs7 import PKCS7Encoder
 from requests.exceptions import ConnectionError, ReadTimeout
-import json, logging, pickle, time
+import json, logging, time
 
 log = logging.getLogger(__name__)
-
-class Persistent:
-
-    cacheroot = Path.home() / '.cache' / 'libiot'
-
-    @classmethod
-    def loadorcreate(cls, relpath, args, *context):
-        try:
-            with (cls.cacheroot / relpath).open('rb') as f:
-                log.debug("Load cached: %s", relpath)
-                obj = pickle.load(f)
-                if obj.validate(*context):
-                    return obj
-        except FileNotFoundError:
-            pass
-        log.debug("Generate: %s", relpath)
-        obj = cls(*args)
-        obj.persist(relpath)
-        return obj
-
-    def persist(self, relpath):
-        with atomic(self.cacheroot / relpath) as p, p.open('wb') as f:
-            pickle.dump(self, f)
-
-    def validate(self, *context):
-        raise NotImplementedError
 
 class P110Exception(Exception):
 

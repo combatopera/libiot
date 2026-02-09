@@ -26,7 +26,7 @@
 #
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-from .util import b64str, dig, KLAPCipher, P110Exception, Persistent
+from .util import b64str, dig, KLAPCipher, P110Exception
 from aridity.config import Config
 from base64 import b64decode
 from datetime import datetime
@@ -62,16 +62,11 @@ class LoginParams:
             with self.password:
                 pass
 
-class P110(Persistent):
+class P110:
 
-    @classmethod
     @types(Config)
-    def loadorcreate(cls, config):
-        return super().loadorcreate(cachedir / config.host, [config])
-
     def __init__(self, config):
         self.host = config.host
-        self._reset()
 
     def _reset(self):
         for name in 'klapcipher', 'klapsession':
@@ -79,13 +74,6 @@ class P110(Persistent):
                 delattr(self, name)
             except AttributeError:
                 pass
-
-    def validate(self):
-        return True
-
-    def dispose(self):
-        if null_exc_info == sys.exc_info():
-            self.persist(cachedir / self.host)
 
     @innerclass
     class BaseClient:
@@ -134,7 +122,7 @@ class P110(Persistent):
             return KLAPCipher(localtoken + remotetoken + self.loginparams.hash)
 
         def __getattr__(self, methodname):
-            if methodname in {'klapsession', 'klapcipher'}:
+            if methodname in {'dispose', 'klapsession', 'klapcipher'}:
                 raise AttributeError(methodname)
             def method(**methodparams):
                 while True:
