@@ -28,12 +28,14 @@
 
 from aridity.config import Config
 from base64 import b64encode
+from concurrent.futures import Executor
 from Crypto.Cipher import AES
 from diapyr import types
 from foyndation import innerclass, singleton
 from hashlib import sha256
 from pkcs7 import PKCS7Encoder
 from requests.exceptions import ConnectionError, ReadTimeout
+from splut.actor import Spawn
 import json, logging, time
 
 log = logging.getLogger(__name__)
@@ -129,3 +131,7 @@ class Retry:
                 if self.fail and not keepgoing:
                     raise
                 log.exception(f"Abort: {f}")
+
+@types(Executor, this = Spawn)
+def spawnfactory(e):
+    return Spawn(e)

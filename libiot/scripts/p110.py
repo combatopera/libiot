@@ -28,19 +28,14 @@
 
 'Run given command on all configured Tapo P100/P110 plugs.'
 from ..p110 import LoginParams, P110
-from ..util import Retry
+from ..util import Retry, spawnfactory
 from argparse import ArgumentParser
 from aridity.config import Config, ConfigCtrl
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import ExitStack
 from diapyr import DI, types
 from foyndation import initlogging, invokeall
-from splut.actor import Spawn
 import json, logging
-
-@types(ThreadPoolExecutor, this = Spawn)
-def spawnfactory(e):
-    return Spawn(e)
 
 class Command:
 
