@@ -27,7 +27,7 @@
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 'Run given command on all configured Tapo P100/P110 plugs.'
-from ..p110 import Identity, LoginParams, P110
+from ..p110 import LoginParams, P110
 from ..util import Retry
 from argparse import ArgumentParser
 from aridity.config import Config, ConfigCtrl
@@ -64,7 +64,6 @@ def main():
     logging.getLogger().setLevel(logging.DEBUG if config.verbose else logging.INFO)
     with DI() as di, ExitStack() as stack, EventLoopPool.open() as e:
         di.add(config)
-        di.add(Identity)
         di.add(Retry)
         di.add(LoginParams)
         def entryfuture(name, conf):

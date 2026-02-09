@@ -29,8 +29,6 @@
 from .util import b64str, dig, KLAPCipher, P110Exception, Persistent
 from aridity.config import Config
 from base64 import b64decode
-from Crypto.Cipher import PKCS1_v1_5
-from Crypto.PublicKey import RSA
 from datetime import datetime
 from diapyr import types
 from foyndation import innerclass, null_exc_info
@@ -40,41 +38,11 @@ from pathlib import Path
 from requests import Session
 from requests.exceptions import HTTPError
 from secrets import token_bytes
-from uuid import uuid4
-import logging, time, pytz, sys
+import logging, pytz, sys
 
 log = logging.getLogger(__name__)
 cachedir = Path('p110')
 charset = 'utf-8'
-
-class Identity(Persistent):
-
-    @classmethod
-    @types()
-    def loadorcreate(cls):
-        return super().loadorcreate(cachedir / 'identity', [])
-
-    def __init__(self):
-        key = RSA.generate(1024)
-        self.privatekey = key.export_key()
-        self.publickey  = key.publickey().export_key().decode('ascii')
-        self.terminaluuid = str(uuid4())
-
-    def validate(self):
-        return True
-
-    def decrypt(self, data):
-        return PKCS1_v1_5.new(RSA.importKey(self.privatekey)).decrypt(data, None)
-
-    def payload(self, **kwargs):
-        return dict(
-            kwargs,
-            requestTimeMils = int(time.time() * 1000),
-            terminalUUID = self.terminaluuid,
-        )
-
-    def handshakepayload(self):
-        return self.payload(key = self.publickey)
 
 class LoginParams:
 
@@ -97,14 +65,13 @@ class LoginParams:
 class P110(Persistent):
 
     @classmethod
-    @types(Config, Identity)
-    def loadorcreate(cls, config, identity):
-        return super().loadorcreate(cachedir / config.host, [config, identity], identity)
+    @types(Config)
+    def loadorcreate(cls, config):
+        return super().loadorcreate(cachedir / config.host, [config])
 
-    def __init__(self, config, identity):
+    def __init__(self, config):
         self.host = config.host
         self._reset()
-        self.identity = identity
 
     def _reset(self):
         for name in 'klapcipher', 'klapsession':
@@ -113,8 +80,8 @@ class P110(Persistent):
             except AttributeError:
                 pass
 
-    def validate(self, contextidentity):
-        return self.identity.terminaluuid == contextidentity.terminaluuid
+    def validate(self):
+        return True
 
     def dispose(self):
         if null_exc_info == sys.exc_info():
