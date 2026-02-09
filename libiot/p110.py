@@ -70,13 +70,6 @@ class P110:
         self.timeout = config.timeout
         self.loginparams = loginparams
 
-    def _reset(self):
-        for name in 'klapcipher', 'klapsession':
-            try:
-                delattr(self, name)
-            except AttributeError:
-                pass
-
     def ison(self):
         return self.get_device_info()['device_on']
 
@@ -118,20 +111,14 @@ class P110:
         if methodname in {'dispose', 'klapsession', 'klapcipher'}:
             raise AttributeError(methodname)
         def method(**methodparams):
-            while True:
-                try:
-                    cipher = self.klapcipher
-                except AttributeError:
-                    self.klapcipher = cipher = self._handshake()
-                channel = cipher.channel()
-                try:
-                    return P110Exception.check(channel.decrypt(self._post(
-                        'request',
-                        dict(seq = channel.seq),
-                        channel.encrypt(dict(method = methodname, params = methodparams)),
-                    )))
-                except HTTPError as e:
-                    if HTTPStatus.FORBIDDEN != e.response.status_code:
-                        raise
-                    self._reset()
+            try:
+                cipher = self.klapcipher
+            except AttributeError:
+                self.klapcipher = cipher = self._handshake()
+            channel = cipher.channel()
+            return P110Exception.check(channel.decrypt(self._post(
+                'request',
+                dict(seq = channel.seq),
+                channel.encrypt(dict(method = methodname, params = methodparams)),
+            )))
         return method
