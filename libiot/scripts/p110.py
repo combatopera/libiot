@@ -34,6 +34,7 @@ from aridity.config import Config, ConfigCtrl
 from contextlib import ExitStack
 from diapyr import DI, types
 from foyndation import initlogging, invokeall
+from splut.actor import Spawn
 from splut.actor.aio import EventLoopPool
 import json, logging
 
@@ -62,6 +63,7 @@ def main():
         di.add(config)
         di.add(Retry)
         di.add(LoginParams)
+        di.add(Spawn(e))
         def entryfuture(name, conf):
             plugdi = stack.enter_context(DI(di))
             plugdi.add(name)

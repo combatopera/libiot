@@ -36,6 +36,7 @@ from hashlib import sha1, sha256
 from pathlib import Path
 from requests import Session
 from secrets import token_bytes
+from splut.actor import Spawn
 import logging, pytz, sys
 
 log = logging.getLogger(__name__)
@@ -60,13 +61,24 @@ class LoginParams:
             with self.password:
                 pass
 
+class HTTPSession:
+
+    def __init__(self):
+        self.s = Session()
+
+    def httppost(self, url, params, data, timeout):
+        response = self.s.post(url, params = params, data = data, timeout = timeout)
+        response.raise_for_status()
+        return response.content
+
 class P110:
 
-    @types(Config, LoginParams)
-    def __init__(self, config, loginparams):
+    @types(Config, LoginParams, Spawn)
+    def __init__(self, config, loginparams, spawn):
         self.host = config.host
         self.timeout = config.timeout
         self.loginparams = loginparams
+        self.spawn = spawn
 
     def ison(self):
         return self.get_device_info()['device_on']
@@ -94,10 +106,8 @@ class P110:
         try:
             session = self.klapsession
         except AttributeError:
-            self.klapsession = session = Session()
-        response = session.post(f"http://{self.host}/app/{slug}", params = params, data = data, timeout = self.timeout)
-        response.raise_for_status()
-        return response.content
+            self.klapsession = session = self.spawn(HTTPSession())
+        return session.httppost(f"http://{self.host}/app/{slug}", params, data, self.timeout).wait()
 
     def _handshake(self):
         localtoken = token_bytes(16)
