@@ -32,9 +32,7 @@ cli
     v = $(void)
 command = $(cli command)
 password = $(void)
-plug *
-    host = $(void)
-    protocol = KLAP
+plug * host = $(void)
 retry
     fail = $(cli fail)
     seconds = $(cli retry)

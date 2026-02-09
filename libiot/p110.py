@@ -31,7 +31,7 @@ from aridity.config import Config
 from base64 import b64decode
 from datetime import datetime
 from diapyr import types
-from foyndation import innerclass, null_exc_info
+from foyndation import null_exc_info
 from hashlib import sha1, sha256
 from http import HTTPStatus
 from pathlib import Path
@@ -64,9 +64,11 @@ class LoginParams:
 
 class P110:
 
-    @types(Config)
-    def __init__(self, config):
+    @types(Config, LoginParams)
+    def __init__(self, config, loginparams):
         self.host = config.host
+        self.timeout = config.timeout
+        self.loginparams = loginparams
 
     def _reset(self):
         for name in 'klapcipher', 'klapsession':
@@ -75,70 +77,61 @@ class P110:
             except AttributeError:
                 pass
 
-    @innerclass
-    class BaseClient:
+    def ison(self):
+        return self.get_device_info()['device_on']
 
-        def __init__(self, config, loginparams):
-            self.timeout = config.timeout
-            self.loginparams = loginparams
+    def on(self):
+        self.set_device_info(device_on = True)
 
-        def ison(self):
-            return self.get_device_info()['device_on']
+    def off(self):
+        self.set_device_info(device_on = False)
 
-        def on(self):
-            self.set_device_info(device_on = True)
+    def nickname(self):
+        return b64decode(self.get_device_info()['nickname']).decode(charset)
 
-        def off(self):
-            self.set_device_info(device_on = False)
+    def status(self):
+        return 'on' if self.ison() else 'off'
 
-        def nickname(self):
-            return b64decode(self.get_device_info()['nickname']).decode(charset)
+    def time(self):
+        d = self.get_device_time()
+        return pytz.utc.localize(datetime.utcfromtimestamp(d['timestamp'])).astimezone(pytz.timezone(d['region'])).strftime('%Y-%m-%d %H:%M:%S %Z')
 
-        def status(self):
-            return 'on' if self.ison() else 'off'
+    def power(self):
+        return self.get_energy_usage()['current_power'] / 1000
 
-        def time(self):
-            d = self.get_device_time()
-            return pytz.utc.localize(datetime.utcfromtimestamp(d['timestamp'])).astimezone(pytz.timezone(d['region'])).strftime('%Y-%m-%d %H:%M:%S %Z')
+    def _post(self, slug, params, data):
+        try:
+            session = self.klapsession
+        except AttributeError:
+            self.klapsession = session = Session()
+        response = session.post(f"http://{self.host}/app/{slug}", params = params, data = data, timeout = self.timeout)
+        response.raise_for_status()
+        return response.content
 
-        def power(self):
-            return self.get_energy_usage()['current_power'] / 1000
+    def _handshake(self):
+        localtoken = token_bytes(16)
+        remotetoken = self._post('handshake1', {}, localtoken)[:16]
+        self._post('handshake2', {}, dig(sha256, remotetoken + localtoken + self.loginparams.hash))
+        return KLAPCipher(localtoken + remotetoken + self.loginparams.hash)
 
-    class KLAP(BaseClient):
-
-        def _post(self, slug, params, data):
-            try:
-                session = self.klapsession
-            except AttributeError:
-                self._enclosinginstance.klapsession = session = Session()
-            response = session.post(f"http://{self.host}/app/{slug}", params = params, data = data, timeout = self.timeout)
-            response.raise_for_status()
-            return response.content
-
-        def _handshake(self):
-            localtoken = token_bytes(16)
-            remotetoken = self._post('handshake1', {}, localtoken)[:16]
-            self._post('handshake2', {}, dig(sha256, remotetoken + localtoken + self.loginparams.hash))
-            return KLAPCipher(localtoken + remotetoken + self.loginparams.hash)
-
-        def __getattr__(self, methodname):
-            if methodname in {'dispose', 'klapsession', 'klapcipher'}:
-                raise AttributeError(methodname)
-            def method(**methodparams):
-                while True:
-                    try:
-                        cipher = self.klapcipher
-                    except AttributeError:
-                        self._enclosinginstance.klapcipher = cipher = self._handshake()
-                    channel = cipher.channel()
-                    try:
-                        return P110Exception.check(channel.decrypt(self._post(
-                            'request',
-                            dict(seq = channel.seq),
-                            channel.encrypt(dict(method = methodname, params = methodparams)),
-                        )))
-                    except HTTPError as e:
-                        if HTTPStatus.FORBIDDEN != e.response.status_code:
-                            raise
-                        self._reset()
-            return method
+    def __getattr__(self, methodname):
+        if methodname in {'dispose', 'klapsession', 'klapcipher'}:
+            raise AttributeError(methodname)
+        def method(**methodparams):
+            while True:
+                try:
+                    cipher = self.klapcipher
+                except AttributeError:
+                    self.klapcipher = cipher = self._handshake()
+                channel = cipher.channel()
+                try:
+                    return P110Exception.check(channel.decrypt(self._post(
+                        'request',
+                        dict(seq = channel.seq),
+                        channel.encrypt(dict(method = methodname, params = methodparams)),
+                    )))
+                except HTTPError as e:
+                    if HTTPStatus.FORBIDDEN != e.response.status_code:
+                        raise
+                    self._reset()
+        return method
