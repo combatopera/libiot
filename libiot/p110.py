@@ -33,8 +33,10 @@ from datetime import datetime
 from diapyr import types
 from foyndation import null_exc_info
 from hashlib import sha1, sha256
+from http import HTTPStatus
 from pathlib import Path
 from requests import Session
+from requests.exceptions import HTTPError
 from secrets import token_bytes
 from splut.actor import Spawn
 import logging, pytz, sys
@@ -80,6 +82,13 @@ class P110:
         self.loginparams = loginparams
         self.spawn = spawn
 
+    def _reset(self):
+        for name in 'klapcipher', 'klapsession':
+            try:
+                delattr(self, name)
+            except AttributeError:
+                pass
+
     def ison(self):
         return self.get_device_info()['device_on']
 
@@ -119,14 +128,20 @@ class P110:
         if methodname in {'dispose', 'klapsession', 'klapcipher'}:
             raise AttributeError(methodname)
         def method(**methodparams):
-            try:
-                cipher = self.klapcipher
-            except AttributeError:
-                self.klapcipher = cipher = self._handshake()
-            channel = cipher.channel()
-            return P110Exception.check(channel.decrypt(self._post(
-                'request',
-                dict(seq = channel.seq),
-                channel.encrypt(dict(method = methodname, params = methodparams)),
-            )))
+            while True:
+                try:
+                    cipher = self.klapcipher
+                except AttributeError:
+                    self.klapcipher = cipher = self._handshake()
+                channel = cipher.channel()
+                try:
+                    return P110Exception.check(channel.decrypt(self._post(
+                        'request',
+                        dict(seq = channel.seq),
+                        channel.encrypt(dict(method = methodname, params = methodparams)),
+                    )))
+                except HTTPError as e:
+                    if HTTPStatus.FORBIDDEN != e.response.status_code:
+                        raise
+                    self._reset()
         return method
