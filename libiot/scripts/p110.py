@@ -32,7 +32,6 @@ from ..util import Retry, spawnfactory
 from argparse import ArgumentParser
 from aridity.config import Config, ConfigCtrl
 from concurrent.futures import ThreadPoolExecutor
-from contextlib import ExitStack
 from diapyr import DI, types
 from foyndation import initlogging, invokeall
 import json, logging
@@ -58,14 +57,14 @@ def main():
     parser.add_argument('command')
     parser.parse_args(namespace = config.cli)
     logging.getLogger().setLevel(logging.DEBUG if config.verbose else logging.INFO)
-    with DI() as di, ExitStack() as stack, ThreadPoolExecutor() as e:
+    with DI() as di, ThreadPoolExecutor() as e:
         di.add(config)
         di.add(Retry)
         di.add(LoginParams)
         di.add(e)
         di.add(spawnfactory)
         def entryfuture(name, conf):
-            plugdi = stack.enter_context(DI(di))
+            plugdi = DI(di)
             plugdi.add(name)
             plugdi.add(conf)
             plugdi.add(P110)
