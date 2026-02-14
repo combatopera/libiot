@@ -28,27 +28,32 @@
 
 'Get data from Govee H5075.'
 from ..bluetoothctl import BluetoothShell
-from ..util import Retry
+from ..util import Retry, spawnfactory
 from argparse import ArgumentParser
 from aridity.config import Config, ConfigCtrl
 from concurrent.futures import ThreadPoolExecutor
 from diapyr import DI, types
 from foyndation import initlogging, invokeall
 from functools import partial
+from splut.actor import Spawn
 import json, logging
 
 class Script:
 
-    @types(Config, BluetoothShell, Retry, ThreadPoolExecutor)
-    def __init__(self, config, shell, retry, e):
-        self.exclude = set(config.exclude)
-        self.sensors = {name: s.address for name, s in -config.sensor}
+    @types(str, Config, BluetoothShell, Retry)
+    def __init__(self, name, s, shell, retry):
+        self.name = name
+        self.address = s.address
         self.shell = shell
         self.retry = retry
-        self.e = e
 
-    def run(self):
-        return dict(zip(self.sensors, invokeall([self.e.submit(self.retry, (lambda: None) if name in self.exclude else partial(self.shell.read_h5075, address)).result for name, address in self.sensors.items()])))
+    def __call__(self):
+        return self.name, self.retry(partial(self.shell.read_h5075, self.address))
+
+class W:
+
+    def run(self, task):
+        return task()
 
 def main():
     initlogging()
@@ -64,9 +69,17 @@ def main():
         di.add(BluetoothShell)
         di.add(config)
         di.add(e)
+        di.add(spawnfactory)
         di.add(Retry)
-        di.add(Script)
-        print(json.dumps(di(Script).run()))
+        exclude = set(config.exclude)
+        for name, s in -config.sensor:
+            if name not in exclude:
+                subdi = DI(di)
+                subdi.add(name)
+                subdi.add(s)
+                subdi.add(Script)
+                subdi.join(Script)
+        print(json.dumps(dict(invokeall([a.run(s).wait for a in [di(Spawn)(*(W() for _ in range(4)))] for s in di.all(Script)]))))
 
 if '__main__' == __name__:
     main()
