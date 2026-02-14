@@ -34,6 +34,7 @@ from aridity.config import Config, ConfigCtrl
 from concurrent.futures import ThreadPoolExecutor
 from diapyr import DI, types
 from foyndation import initlogging, invokeall
+from splut.actor import Spawn
 import json, logging
 
 class Command:
@@ -47,6 +48,11 @@ class Command:
     def __call__(self):
         return self.name, self.retry(self.command)
 
+class W:
+
+    def run(self, command):
+        return command()
+
 def main():
     initlogging()
     config = ConfigCtrl().loadappconfig(main, 'p110.arid')
@@ -57,20 +63,22 @@ def main():
     parser.add_argument('command')
     parser.parse_args(namespace = config.cli)
     logging.getLogger().setLevel(logging.DEBUG if config.verbose else logging.INFO)
-    with DI() as di, ThreadPoolExecutor() as e:
+    with DI() as di, ThreadPoolExecutor(100) as e:
         di.add(config)
         di.add(Retry)
         di.add(LoginParams)
         di.add(e)
         di.add(spawnfactory)
-        def entryfuture(name, conf):
+        for name, conf in -config.plug:
             plugdi = DI(di)
             plugdi.add(name)
             plugdi.add(conf)
             plugdi.add(P110)
             plugdi.add(Command)
-            return e.submit(plugdi(Command))
-        print(json.dumps(dict(invokeall([entryfuture(*item).result for item in -config.plug]))))
+            plugdi.join(Command)
+        a = di(Spawn)(*(W() for _ in range(4)))
+        futures = [a.run(command) for command in di.all(Command)]
+        print(json.dumps(dict(invokeall(f.wait for f in futures))))
 
 if '__main__' == __name__:
     main()
