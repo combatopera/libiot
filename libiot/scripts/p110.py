@@ -76,9 +76,7 @@ def main():
             plugdi.add(P110)
             plugdi.add(Command)
             plugdi.join(Command)
-        a = di(Spawn)(*(W() for _ in range(4)))
-        futures = [a.run(command) for command in di.all(Command)]
-        print(json.dumps(dict(invokeall(f.wait for f in futures))))
+        print(json.dumps(dict(invokeall([a.run(c).wait for a in [di(Spawn)(*(W() for _ in range(4)))] for c in di.all(Command)]))))
 
 if '__main__' == __name__:
     main()
