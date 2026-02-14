@@ -65,7 +65,7 @@ def main():
     parser.add_argument('-v', action = 'store_true')
     parser.parse_args(namespace = config.cli)
     logging.getLogger().setLevel(logging.DEBUG if config.verbose else logging.INFO)
-    with DI() as di, ThreadPoolExecutor() as e:
+    with DI() as di, ThreadPoolExecutor(100) as e:
         di.add(BluetoothShell)
         di.add(config)
         di.add(e)
