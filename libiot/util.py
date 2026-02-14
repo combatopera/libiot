@@ -36,7 +36,7 @@ from hashlib import sha256
 from pkcs7 import PKCS7Encoder
 from requests.exceptions import ConnectionError, ReadTimeout
 from splut.actor import Spawn
-import json, logging, time
+import json, logging, os, time
 
 log = logging.getLogger(__name__)
 
@@ -135,3 +135,12 @@ class Retry:
 @types(Executor, this = Spawn)
 def spawnfactory(e):
     return Spawn(e)
+
+class Worker:
+
+    def run(self, task):
+        return task()
+
+@types(Spawn)
+def throttlefactory(s):
+    return s(*(Worker() for _ in range(os.cpu_count())))

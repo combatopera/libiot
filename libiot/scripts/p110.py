@@ -28,13 +28,12 @@
 
 'Run given command on all configured Tapo P100/P110 plugs.'
 from ..p110 import LoginParams, P110
-from ..util import Retry, spawnfactory
+from ..util import Retry, spawnfactory, throttlefactory
 from argparse import ArgumentParser
 from aridity.config import Config, ConfigCtrl
 from concurrent.futures import ThreadPoolExecutor
 from diapyr import DI, types
 from foyndation import initlogging, invokeall
-from splut.actor import Spawn
 import json, logging
 
 class Command:
@@ -48,11 +47,6 @@ class Command:
     def __call__(self):
         return self.name, self.retry(self.command)
 
-class W:
-
-    def run(self, command):
-        return command()
-
 def main():
     initlogging()
     config = ConfigCtrl().loadappconfig(main, 'p110.arid')
@@ -65,10 +59,11 @@ def main():
     logging.getLogger().setLevel(logging.DEBUG if config.verbose else logging.INFO)
     with DI() as di, ThreadPoolExecutor(100) as e:
         di.add(config)
-        di.add(Retry)
-        di.add(LoginParams)
         di.add(e)
+        di.add(LoginParams)
+        di.add(Retry)
         di.add(spawnfactory)
+        di.add(throttlefactory)
         for name, conf in -config.plug:
             plugdi = DI(di)
             plugdi.add(name)
@@ -76,7 +71,7 @@ def main():
             plugdi.add(P110)
             plugdi.add(Command)
             plugdi.join(Command)
-        print(json.dumps(dict(invokeall([a.run(c).wait for a in [di(Spawn)(*(W() for _ in range(4)))] for c in di.all(Command)]))))
+        print(json.dumps(dict(invokeall([a.run(c).wait for a in [di(throttlefactory)] for c in di.all(Command)]))))
 
 if '__main__' == __name__:
     main()

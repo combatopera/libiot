@@ -28,14 +28,13 @@
 
 'Get data from all configured Mijia thermometer/hygrometer 2 sensors.'
 from ..bluetoothctl import BluetoothShell
-from ..util import Retry, spawnfactory
+from ..util import Retry, spawnfactory, throttlefactory
 from argparse import ArgumentParser
 from aridity.config import Config, ConfigCtrl
 from concurrent.futures import ThreadPoolExecutor
 from diapyr import DI, types
 from foyndation import initlogging, invokeall
 from functools import partial
-from splut.actor import Spawn
 import json, logging
 
 class Script:
@@ -49,11 +48,6 @@ class Script:
 
     def __call__(self):
         return self.name, self.retry(partial(self.shell.read_lywsd03mmc, self.address))
-
-class W:
-
-    def run(self, task):
-        return task()
 
 def main():
     initlogging()
@@ -69,8 +63,9 @@ def main():
         di.add(BluetoothShell)
         di.add(config)
         di.add(e)
-        di.add(spawnfactory)
         di.add(Retry)
+        di.add(spawnfactory)
+        di.add(throttlefactory)
         exclude = set(config.exclude)
         for name, s in -config.sensor:
             if name not in exclude:
@@ -79,7 +74,7 @@ def main():
                 subdi.add(s)
                 subdi.add(Script)
                 subdi.join(Script)
-        print(json.dumps(dict(invokeall([a.run(s).wait for a in [di(Spawn)(*(W() for _ in range(4)))] for s in di.all(Script)]))))
+        print(json.dumps(dict(invokeall([a.run(s).wait for a in [di(throttlefactory)] for s in di.all(Script)]))))
 
 if '__main__' == __name__:
     main()
