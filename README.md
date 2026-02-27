@@ -41,3 +41,6 @@ Get data from all configured Mijia thermometer/hygrometer 2 sensors.
 
 ### p110
 Run given command on all configured Tapo P100/P110 plugs.
+
+### slowercook
+Control duty cycle of a Tapo P100/P110.
