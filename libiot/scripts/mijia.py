@@ -31,10 +31,10 @@ from ..bluetoothctl import BluetoothShell
 from ..util import Retry, spawnfactory, throttlefactory
 from argparse import ArgumentParser
 from aridity.config import Config, ConfigCtrl
-from concurrent.futures import ThreadPoolExecutor
 from diapyr import DI, types
 from foyndation import initlogging, invokeall
 from functools import partial
+from splut.actor import UnboundedThreadPool
 import json, logging
 
 class Script:
@@ -59,7 +59,7 @@ def main():
     parser.add_argument('-v', action = 'store_true')
     parser.parse_args(namespace = config.cli)
     logging.getLogger().setLevel(logging.DEBUG if config.verbose else logging.INFO)
-    with DI() as di, ThreadPoolExecutor(100) as e:
+    with DI() as di, UnboundedThreadPool.open() as e:
         di.add(BluetoothShell)
         di.add(config)
         di.add(e)

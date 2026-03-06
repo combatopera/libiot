@@ -43,6 +43,6 @@ requires +=
     pycryptodome>=3.9.8
     pytz>=2021.1
     requests>=2.24.0
-    splut>=27
+    splut>=28
 tagline = Communicate with smart devices
 years += 2021

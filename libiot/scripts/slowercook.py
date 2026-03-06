@@ -29,12 +29,12 @@
 'Control duty cycle of a Tapo P100/P110.'
 from argparse import ArgumentParser
 from aridity.config import ConfigCtrl
-from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta
 from diapyr import DI
 from foyndation import initlogging
 from libiot.p110 import LoginParams, P110
 from libiot.util import spawnfactory
+from splut.actor import UnboundedThreadPool
 import logging, time
 
 log = logging.getLogger(__name__)
@@ -55,7 +55,7 @@ def main():
     parser.parse_args(namespace = config.cli)
     fraction = config.percent / 100
     period = timedelta(minutes = config.period)
-    with DI() as di, ThreadPoolExecutor(100) as e:
+    with DI() as di, UnboundedThreadPool.open() as e:
         di.add(config)
         di.add(e)
         di.add(LoginParams)
