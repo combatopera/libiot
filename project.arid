@@ -41,7 +41,7 @@ requires +=
     pexpect>=4.8.0
     pkcs7>=0.1.2
     pycryptodome>=3.9.8
-    pytz>=2021.1
+    pytz==2026.1
     requests>=2.24.0
     splut>=28
 tagline = Communicate with smart devices

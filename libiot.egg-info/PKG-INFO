@@ -13,7 +13,7 @@ Requires-Dist: lagoon>=24
 Requires-Dist: pexpect>=4.8.0
 Requires-Dist: pkcs7>=0.1.2
 Requires-Dist: pycryptodome>=3.9.8
-Requires-Dist: pytz>=2021.1
+Requires-Dist: pytz==2026.1
 Requires-Dist: requests>=2.24.0
 Requires-Dist: splut>=28
 Dynamic: description
