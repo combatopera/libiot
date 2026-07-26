@@ -26,39 +26,25 @@
 #
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-'Run given command on all configured Shelly plugs.'
-from ..shelly import Shelly
-from argparse import ArgumentParser
-from aridity.config import Config, ConfigCtrl
-from diapyr import DI, types
-from foyndation import initlogging, invokeall
+from aridity.config import Config
+from diapyr import types
+from lagoon.url import URL
 import json
 
-class Command:
+class Shelly:
 
-    @types(Config, Shelly, str)
-    def __init__(self, config, shelly, name):
-        self.command = getattr(shelly, config.command)
-        self.name = name
+    @types(Config)
+    def __init__(self, config):
+        self.url = URL.binary(f"http://{config.host}/rpc")
 
-    def __call__(self):
-        return self.name, self.command()
+    def _set(self, on):
+        self.url('Switch.Set', query = dict(id = '0', on = on))
 
-def main():
-    initlogging()
-    config = ConfigCtrl().loadappconfig(main, 'shelly.arid')
-    parser = ArgumentParser()
-    parser.add_argument('command')
-    parser.parse_args(namespace = config.cli)
-    with DI() as di:
-        for name, conf in -config.plug:
-            plugdi = DI(di)
-            plugdi.add(name)
-            plugdi.add(conf)
-            plugdi.add(Shelly)
-            plugdi.add(Command)
-            plugdi.join(Command)
-        print(json.dumps(dict(invokeall(di.all(Command)))))
+    def ison(self):
+        return json.loads(self.url('Switch.GetStatus', query = dict(id = '0')))['output']
 
-if '__main__' == __name__:
-    main()
+    def on(self):
+        self._set('true')
+
+    def off(self):
+        self._set('false')
