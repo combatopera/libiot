@@ -26,6 +26,7 @@
 #
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
+from . import Plug
 from .util import b64str, dig, KLAPCipher, P110Exception
 from aridity.config import Config
 from base64 import b64decode
@@ -73,7 +74,7 @@ class HTTPSession:
         response.raise_for_status()
         return response.content
 
-class P110:
+class P110(Plug):
 
     @types(Config, LoginParams, Spawn)
     def __init__(self, config, loginparams, spawn):
@@ -100,9 +101,6 @@ class P110:
 
     def nickname(self):
         return b64decode(self.get_device_info()['nickname']).decode(charset)
-
-    def status(self):
-        return 'on' if self.ison() else 'off'
 
     def time(self):
         d = self.get_device_time()
