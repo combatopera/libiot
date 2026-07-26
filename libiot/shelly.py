@@ -49,3 +49,6 @@ class Shelly(Plug):
 
     def off(self):
         self._set('false')
+
+    def power(self):
+        return json.loads(self.url('Switch.GetStatus', query = dict(id = '0')))['apower']
