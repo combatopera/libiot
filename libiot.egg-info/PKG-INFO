@@ -3,6 +3,7 @@ Name: libiot
 Version: 1.dev0
 Summary: Communicate with smart devices
 Home-page: https://github.com/combatopera/libiot
+Requires-Python: >=3.11
 Description-Content-Type: text/markdown
 License-File: LICENSE.pyp100
 License-File: COPYING
@@ -16,11 +17,7 @@ Requires-Dist: pycryptodome>=3.9.8
 Requires-Dist: pytz==2026.1
 Requires-Dist: requests>=2.24.0
 Requires-Dist: splut>=28
-Dynamic: description
-Dynamic: description-content-type
 Dynamic: home-page
-Dynamic: requires-dist
-Dynamic: summary
 
 # libiot
 Communicate with smart devices.

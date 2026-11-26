@@ -1,4 +1,5 @@
-__pycache__/
 libiot.egg-info/*
 !libiot.egg-info/PKG-INFO
+__pycache__/
+/pyproject.toml
 /setup.py
